@@ -10,7 +10,7 @@ export default function StepIndicator({
       {Array.from({ length: total }).map((_, i) => (
         <div
           key={i}
-          className={`h-1.5 w-5 rounded-full ${
+          className={`h-1.5 w-5 rounded-full transition-colors duration-300 ${
             i < step ? "bg-sky-deep" : "bg-line"
           }`}
         />

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Baloo_2, Nunito } from "next/font/google";
 import "./globals.css";
+import Providers from "./providers";
 
 // Baloo 2 = playful headings / brand voice, Nunito = everyday body text.
 // Both are wired up as CSS variables so Tailwind can reach them
@@ -34,7 +35,7 @@ export default function RootLayout({
             a centered "phone-width" column below the lg breakpoint, and a
             real sidebar + wide-content layout at lg and up. See
             components/layout/AppShell.tsx for the pattern most pages use. */}
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

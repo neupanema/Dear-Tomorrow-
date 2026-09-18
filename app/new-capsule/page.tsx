@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AnimatePresence, motion } from "framer-motion";
 import { Calendar, MapPin, Sparkles, Video, Check, Lock } from "lucide-react";
 import TopBar from "@/components/layout/TopBar";
 import Button from "@/components/ui/Button";
@@ -11,6 +12,7 @@ import MethodCard from "@/components/new-capsule/MethodCard";
 import CapsuleCalendar from "@/components/new-capsule/CapsuleCalendar";
 import LocationPicker from "@/components/new-capsule/LocationPicker";
 import ReviewSummary from "@/components/new-capsule/ReviewSummary";
+import SealAnimation from "@/components/new-capsule/SealAnimation";
 import { UnlockMethod } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 
@@ -19,7 +21,9 @@ const TOTAL_STEPS = 4;
 export default function NewCapsulePage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
-  const [sealed, setSealed] = useState(false);
+  const [stepDir, setStepDir] = useState(1); // which way the step content slides in
+  // editing -> sealing (capsule closing animation) -> sealed (confirmation)
+  const [phase, setPhase] = useState<"editing" | "sealing" | "sealed">("editing");
 
   // form state — all of this is what you'll POST to the backend once it exists
   const [message, setMessage] = useState("");
@@ -38,32 +42,74 @@ export default function NewCapsulePage() {
       : "No date selected";
 
   function next() {
+    setStepDir(1);
     setStep((s) => Math.min(s + 1, TOTAL_STEPS));
   }
   function back() {
+    setStepDir(-1);
     setStep((s) => Math.max(s - 1, 1));
   }
 
   function handleSeal() {
     // TODO: replace with a real POST /capsules call once the backend exists,
     // uploading `photo` to storage and saving message/method/date/location.
-    setSealed(true);
+    setPhase("sealing");
   }
 
-  if (sealed) {
+  const handleSealed = useCallback(() => setPhase("sealed"), []);
+
+  // The sealing animation and the confirmation share one screen, so the
+  // capsule stays put while the text underneath swaps.
+  if (phase !== "editing") {
+    const done = phase === "sealed";
     return (
       <div className="min-h-screen bg-gradient-to-b lg:bg-gradient-to-br from-sky to-sky-deep flex flex-col items-center justify-center text-white text-center px-8">
-        <div className="w-20 h-20 rounded-full bg-white/20 border-2 border-white/40 flex items-center justify-center mb-4">
-          <Check size={34} />
+        <div className="relative mb-2">
+          <SealAnimation onComplete={handleSealed} className="w-48 h-52 lg:w-56 lg:h-60" />
+          <AnimatePresence>
+            {done && (
+              <motion.div
+                initial={{ scale: 0, rotate: -40 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 380, damping: 14 }}
+                className="absolute bottom-6 right-2 w-11 h-11 rounded-full bg-white text-sky-deep flex items-center justify-center shadow-lg"
+              >
+                <Check size={22} strokeWidth={3} />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-        <h2 className="font-display text-lg lg:text-2xl mb-1.5">Capsule sealed</h2>
-        <p className="text-xs lg:text-sm opacity-90 leading-relaxed mb-5 max-w-[190px] lg:max-w-xs">
-          We&apos;ll let you know the moment it&apos;s ready to open.
-        </p>
-        <div className="w-full max-w-[200px]">
-          <Button variant="white" onClick={() => router.push("/dashboard")}>
-            Back to dashboard
-          </Button>
+
+        <div role="status" aria-live="polite" className="min-h-[140px] flex flex-col items-center">
+          <AnimatePresence mode="wait" initial={false}>
+            {done ? (
+              <motion.div
+                key="done"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="flex flex-col items-center"
+              >
+                <h2 className="font-display text-lg lg:text-2xl mb-1.5">Capsule sealed</h2>
+                <p className="text-xs lg:text-sm opacity-90 leading-relaxed mb-5 max-w-[190px] lg:max-w-xs">
+                  We&apos;ll let you know the moment it&apos;s ready to open.
+                </p>
+                <div className="w-full min-w-[200px]">
+                  <Button variant="white" onClick={() => router.push("/dashboard")}>
+                    Back to dashboard
+                  </Button>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.h2
+                key="sealing"
+                exit={{ opacity: 0 }}
+                className="font-display text-lg lg:text-2xl"
+              >
+                Sealing your capsule...
+              </motion.h2>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     );
@@ -92,74 +138,81 @@ export default function NewCapsulePage() {
           <div className="flex-1 p-4 lg:p-8">
             <StepIndicator step={step} total={TOTAL_STEPS} />
 
-            {step === 1 && (
-              <div>
-                <label className="field-label" htmlFor="message">
-                  Message
-                </label>
-                <textarea
-                  id="message"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Dear future me, I hope you didn't give up on..."
-                  rows={4}
-                  className="w-full bg-white border-2 border-dashed border-[#C9DFF7] rounded-2xl p-3 text-xs text-ink outline-none resize-none"
-                />
-                <label className="field-label">Photo</label>
-                <PhotoDrop onChange={setPhoto} />
-              </div>
-            )}
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, x: stepDir * 24 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+            >
+              {step === 1 && (
+                <div>
+                  <label className="field-label" htmlFor="message">
+                    Message
+                  </label>
+                  <textarea
+                    id="message"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Dear future me, I hope you didn't give up on..."
+                    rows={4}
+                    className="w-full bg-white border-2 border-dashed border-[#C9DFF7] rounded-2xl p-3 text-xs text-ink outline-none resize-none"
+                  />
+                  <label className="field-label">Photo</label>
+                  <PhotoDrop onChange={setPhoto} />
+                </div>
+              )}
 
-            {step === 2 && (
-              <div>
-                <MethodCard
-                  icon={Calendar}
-                  title="On a date"
-                  subtitle="Choose a day in the future to open it"
-                  active={method === "date"}
-                  onClick={() => setMethod("date")}
-                />
-                <MethodCard
-                  icon={MapPin}
-                  title="At a place"
-                  subtitle="Unlocks when you return somewhere"
-                  active={method === "place"}
-                  onClick={() => setMethod("place")}
-                />
-                <MethodCard
-                  icon={Sparkles}
-                  title="Date + place"
-                  subtitle="Needs both to open, for a bigger moment"
-                  active={method === "date-and-place"}
-                  onClick={() => setMethod("date-and-place")}
-                />
-                <MethodCard
-                  icon={Video}
-                  title="Video message"
-                  subtitle="Coming soon"
-                  badge="Soon"
-                  disabled
-                />
-              </div>
-            )}
+              {step === 2 && (
+                <div>
+                  <MethodCard
+                    icon={Calendar}
+                    title="On a date"
+                    subtitle="Choose a day in the future to open it"
+                    active={method === "date"}
+                    onClick={() => setMethod("date")}
+                  />
+                  <MethodCard
+                    icon={MapPin}
+                    title="At a place"
+                    subtitle="Unlocks when you return somewhere"
+                    active={method === "place"}
+                    onClick={() => setMethod("place")}
+                  />
+                  <MethodCard
+                    icon={Sparkles}
+                    title="Date + place"
+                    subtitle="Needs both to open, for a bigger moment"
+                    active={method === "date-and-place"}
+                    onClick={() => setMethod("date-and-place")}
+                  />
+                  <MethodCard
+                    icon={Video}
+                    title="Video message"
+                    subtitle="Coming soon"
+                    badge="Soon"
+                    disabled
+                  />
+                </div>
+              )}
 
-            {step === 3 && method !== "place" && (
-              <CapsuleCalendar value={date} onChange={setDate} />
-            )}
-            {step === 3 && method === "place" && (
-              <LocationPicker onChange={() => setLocationPicked(true)} />
-            )}
+              {step === 3 && method !== "place" && (
+                <CapsuleCalendar value={date} onChange={setDate} />
+              )}
+              {step === 3 && method === "place" && (
+                <LocationPicker onChange={() => setLocationPicked(true)} />
+              )}
 
-            {step === 4 && (
-              <div>
-                <div className="h-16 rounded-2xl mb-3 bg-gradient-to-br from-sun via-coral to-sky" />
-                <ReviewSummary
-                  message={message}
-                  hasPhoto={!!photo}
-                  unlockLabel={unlockLabel}
-                />
-              </div>
-            )}
+              {step === 4 && (
+                <div>
+                  <div className="h-16 rounded-2xl mb-3 bg-gradient-to-br from-sun via-coral to-sky" />
+                  <ReviewSummary
+                    message={message}
+                    hasPhoto={!!photo}
+                    unlockLabel={unlockLabel}
+                  />
+                </div>
+              )}
+            </motion.div>
           </div>
 
           <div className="p-4 lg:p-8 lg:pt-0">

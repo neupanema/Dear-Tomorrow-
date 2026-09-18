@@ -1,7 +1,12 @@
+"use client";
+
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { Lock, MapPin, Sparkles } from "lucide-react";
 import { Capsule } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
+
+const MotionLink = motion.create(Link);
 
 function badge(capsule: Capsule) {
   if (capsule.status === "unlocked") {
@@ -21,17 +26,39 @@ function subtitle(capsule: Capsule) {
   return "Sealed";
 }
 
-export default function CapsuleCard({ capsule }: { capsule: Capsule }) {
+// Cards fade + rise in one after another. `custom` carries the card's
+// position so the stagger also works for cards re-entering after a filter.
+const cardVariants = {
+  hidden: { opacity: 0, y: 14 },
+  show: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.32, ease: "easeOut" as const, delay: i * 0.07 },
+  }),
+  exit: { opacity: 0, scale: 0.97, transition: { duration: 0.16 } },
+};
+
+export default function CapsuleCard({
+  capsule,
+  index = 0,
+}: {
+  capsule: Capsule;
+  index?: number;
+}) {
   const { icon: Icon, bg } = badge(capsule);
 
   return (
-    <Link
-      href={
-        capsule.status === "unlocked"
-          ? `/capsule/${capsule.id}`
-          : `/capsule/${capsule.id}` // sealed capsules also route here and show the waiting screen
-      }
-      className="card flex items-center gap-3 mb-2.5 lg:mb-0 lg:p-4"
+    <MotionLink
+      href={`/capsule/${capsule.id}`} // sealed capsules also route here and show the waiting screen
+      layout
+      variants={cardVariants}
+      custom={index}
+      initial="hidden"
+      animate="show"
+      exit="exit"
+      whileHover={{ y: -2 }}
+      whileTap={{ scale: 0.98 }}
+      className="card flex items-center gap-3 mb-2.5 lg:mb-0 lg:p-4 transition-colors hover:border-sky"
     >
       <div
         className={`w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0 ${bg}`}
@@ -47,6 +74,6 @@ export default function CapsuleCard({ capsule }: { capsule: Capsule }) {
           Open
         </span>
       )}
-    </Link>
+    </MotionLink>
   );
 }

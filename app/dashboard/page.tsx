@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { AnimatePresence } from "framer-motion";
 import TopBar from "@/components/layout/TopBar";
 import AppShell from "@/components/layout/AppShell";
 import CapsuleCard from "@/components/capsules/CapsuleCard";
@@ -59,9 +60,11 @@ export default function DashboardPage() {
         </div>
 
         <div className="lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-4">
-          {visibleCapsules.map((capsule) => (
-            <CapsuleCard key={capsule.id} capsule={capsule} />
-          ))}
+          <AnimatePresence mode="popLayout" initial>
+            {visibleCapsules.map((capsule, i) => (
+              <CapsuleCard key={capsule.id} capsule={capsule} index={i} />
+            ))}
+          </AnimatePresence>
         </div>
 
         {visibleCapsules.length === 0 && (

@@ -1,19 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { Lock, LockOpen, ChevronLeft } from "lucide-react";
+import { notFound, useParams } from "next/navigation";
+import { motion } from "framer-motion";
+import { Lock, ChevronLeft } from "lucide-react";
+import UnlockOrb from "@/components/capsules/UnlockOrb";
 import { getCapsuleById } from "@/lib/mock-data";
 import { formatDate, daysAgo } from "@/lib/utils";
 
-export default function CapsuleDetailPage({
-  params,
-}: {
-  params: { id: string };
-}) {
-  const capsule = getCapsuleById(params.id);
-  const [revealed, setRevealed] = useState(false);
+export default function CapsuleDetailPage() {
+  // useParams (not the `params` prop) — in this Next version the prop is a
+  // Promise, which can't be read synchronously in a client component.
+  const { id } = useParams<{ id: string }>();
+  const capsule = getCapsuleById(id);
+  // idle: waiting for a tap -> opening: crack + burst -> revealed: the message
+  const [phase, setPhase] = useState<"idle" | "opening" | "revealed">("idle");
+  const handleOpen = useCallback(() => setPhase("opening"), []);
+  const handleOpened = useCallback(() => setPhase("revealed"), []);
 
   if (!capsule) return notFound();
 
@@ -28,9 +32,13 @@ export default function CapsuleDetailPage({
         >
           <ChevronLeft size={20} />
         </Link>
-        <div className="w-[92px] h-[92px] lg:w-32 lg:h-32 rounded-full bg-white/15 border-2 border-white/40 flex items-center justify-center mb-4 lg:mb-6">
+        <motion.div
+          animate={{ y: [0, -6, 0] }}
+          transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+          className="w-[92px] h-[92px] lg:w-32 lg:h-32 rounded-full bg-white/15 border-2 border-white/40 flex items-center justify-center mb-4 lg:mb-6"
+        >
           <Lock size={32} className="lg:w-11 lg:h-11" />
-        </div>
+        </motion.div>
         <h2 className="font-display text-base lg:text-2xl mb-1.5">Sealed</h2>
         <p className="text-xs lg:text-sm opacity-90 leading-relaxed mb-4">
           Something from your past
@@ -47,9 +55,10 @@ export default function CapsuleDetailPage({
   }
 
   // --- unlocked, not yet revealed: the "tap to open" moment ---
-  if (!revealed) {
+  if (phase !== "revealed") {
+    const opening = phase === "opening";
     return (
-      <div className="min-h-screen bg-cream flex flex-col items-center justify-center text-center px-8 relative">
+      <div className="min-h-screen bg-cream flex flex-col items-center justify-center text-center px-8 relative overflow-hidden">
         <Link
           href="/dashboard"
           className="absolute left-4 top-4 lg:left-8 lg:top-8 text-ink"
@@ -57,56 +66,82 @@ export default function CapsuleDetailPage({
         >
           <ChevronLeft size={20} />
         </Link>
-        <button
-          onClick={() => setRevealed(true)}
-          className="w-28 h-28 lg:w-36 lg:h-36 rounded-full bg-white border-[3px] border-sun flex items-center justify-center mb-4 lg:mb-6 shadow-[0_10px_24px_-10px_rgba(255,211,77,0.6)]"
+        <div className="mb-4 lg:mb-6">
+          <UnlockOrb opening={opening} onOpen={handleOpen} onOpened={handleOpened} />
+        </div>
+        <motion.div
+          animate={{ opacity: opening ? 0 : 1, y: opening ? 8 : 0 }}
+          transition={{ duration: 0.25 }}
         >
-          <LockOpen size={36} className="text-sky-deep lg:w-11 lg:h-11" />
-        </button>
-        <h2 className="font-display text-base lg:text-2xl text-ink mb-1.5">
-          Ready to open
-        </h2>
-        <p className="text-xs lg:text-sm text-ink-soft leading-relaxed mb-4">
-          Take a breath. This is you, {daysAgo(capsule.createdAt)} days ago.
-        </p>
-        <p className="text-[10.5px] lg:text-xs font-bold text-sky-deep">
-          Tap to open →
-        </p>
+          <h2 className="font-display text-base lg:text-2xl text-ink mb-1.5">
+            Ready to open
+          </h2>
+          <p className="text-xs lg:text-sm text-ink-soft leading-relaxed mb-4">
+            Take a breath. This is you, {daysAgo(capsule.createdAt)} days ago.
+          </p>
+          <p className="text-[10.5px] lg:text-xs font-bold text-sky-deep">
+            Tap to open →
+          </p>
+        </motion.div>
       </div>
     );
   }
 
   // --- unlocked and revealed: the actual message ---
   return (
-    <div className="min-h-screen bg-cream flex flex-col items-center lg:justify-center">
+    <motion.div
+      initial={{ opacity: 0, scale: 0.97 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.45, ease: "easeOut" }}
+      className="min-h-screen bg-cream flex flex-col items-center lg:justify-center"
+    >
       <div className="w-full lg:max-w-lg lg:rounded-3xl lg:overflow-hidden lg:shadow-xl">
         <div className="bg-sky px-4 pt-4 pb-4 lg:px-8 lg:pt-8 lg:pb-6 relative">
           <Link
             href="/dashboard"
             className="absolute left-4 top-4 lg:left-8 lg:top-8 text-white"
+            aria-label="Back to dashboard"
           >
             <ChevronLeft size={20} />
           </Link>
-          <h1 className="font-display text-white text-lg lg:text-2xl text-center leading-snug">
+          <motion.h1
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15, duration: 0.4 }}
+            className="font-display text-white text-lg lg:text-2xl text-center leading-snug"
+          >
             Your past has
             <br />
             something to tell you
-          </h1>
+          </motion.h1>
         </div>
         <div className="flex-1 p-4 lg:p-8 bg-white">
-          <div
+          <motion.div
+            initial={{ opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.3, type: "spring", stiffness: 200, damping: 20 }}
             className={`h-32 lg:h-56 rounded-2xl mb-3 bg-gradient-to-br ${capsule.photoGradient} flex items-center justify-center text-white text-xs lg:text-sm font-bold`}
           >
             Your photo from that day
-          </div>
-          <div className="bg-cream rounded-2xl p-3 lg:p-5 border-l-4 border-sun text-xs lg:text-sm text-ink leading-relaxed">
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.4 }}
+            className="bg-cream rounded-2xl p-3 lg:p-5 border-l-4 border-sun text-xs lg:text-sm text-ink leading-relaxed"
+          >
             &ldquo;{capsule.message}&rdquo;
-          </div>
-          <p className="text-[10px] lg:text-xs text-ink-soft text-center mt-2 lg:mt-3">
+          </motion.div>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.75, duration: 0.4 }}
+            className="text-[10px] lg:text-xs text-ink-soft text-center mt-2 lg:mt-3"
+          >
             Written {daysAgo(capsule.createdAt)} days ago
-          </p>
+          </motion.p>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
