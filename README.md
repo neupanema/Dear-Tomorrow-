@@ -25,10 +25,12 @@ once you know that, the rest of the structure reads itself.
 
 ```
 app/                     ← every folder in here is a page/URL
-  layout.tsx             ← wraps every page: loads fonts, sets the background
+  layout.tsx             ← wraps every page: loads fonts, applies the saved theme
+  providers.tsx          ← motion settings, theme, and toast providers
+  template.tsx           ← the fade + slide between routes
   page.tsx               ← the "/" route — just redirects to /onboarding
-  globals.css            ← Tailwind setup + a few shared button/card styles
-  onboarding/page.tsx     → "/onboarding"      welcome screen
+  globals.css            ← Tailwind setup, the light/dark color tokens, shared styles
+  onboarding/page.tsx     → "/onboarding"      3-slide swipeable intro
   sign-in/page.tsx        → "/sign-in"         email/password form
   dashboard/page.tsx      → "/dashboard"       capsule list, the home screen
   new-capsule/page.tsx    → "/new-capsule"     the 4-step "create a capsule" wizard
@@ -42,6 +44,10 @@ components/              ← reusable pieces that pages are built out of
     Button.tsx              the pill-shaped buttons (primary/secondary/white)
     Chip.tsx                the small "All / Sealed / Opened" filter pills
     PhotoDrop.tsx            the photo upload box with a live preview
+    Icon.tsx                 lucide wrapper: the 16/20/24/32 size scale + aria-hidden
+    Toast.tsx                snackbars: useToast().toast("...") from any component
+    ThemeProvider/Toggle     light/dark, saved in localStorage
+    EmptyState.tsx           illustration + one call to action, for empty screens
   layout/                 things that wrap a page (headers, nav)
     TopBar.tsx               the blue or white header bar with back button
     BottomNav.tsx            mobile-only tab bar (Capsules / Map / Settings)
@@ -51,12 +57,14 @@ components/              ← reusable pieces that pages are built out of
   capsules/               things specific to displaying a capsule
     CapsuleCard.tsx          one row in the dashboard list
     FabButton.tsx            the round "+" button that starts a new capsule
+    UnlockOrb.tsx            the tap-to-open crack + light burst
   new-capsule/            things specific to the "create a capsule" wizard
     StepIndicator.tsx        the little progress dots at the top
     MethodCard.tsx           the "On a date / At a place / ..." choice cards
     CapsuleCalendar.tsx      the custom date picker
     LocationPicker.tsx       the placeholder map you click to drop a pin
     ReviewSummary.tsx        the summary card on the last step
+    SealAnimation.tsx        the capsule closing and locking when you seal
 
 lib/                     ← code, not UI — shared logic and data shapes
   types.ts                 the Capsule type — this is what your database
@@ -67,9 +75,11 @@ lib/                     ← code, not UI — shared logic and data shapes
                             distanceKm() function ready for when you add
                             real location-based unlocking
 
-tailwind.config.ts        ← the Doraemon Sky colors live here (sky, coral, sun,
-                            ink, cream). Change a color once here and it
-                            updates everywhere in the app.
+tailwind.config.ts        ← color *names* (sky, coral, surface, accent, ...) and the
+                            type scale. The color *values* are CSS variables in
+                            app/globals.css: :root is "Doraemon Sky" and .dark is
+                            "Midnight Time Capsule". Change a value there once
+                            and it updates everywhere, in both themes.
 ```
 
 ## Mobile vs. desktop
@@ -115,3 +125,23 @@ The places to touch are already marked with `// TODO` comments:
   `@react-google-maps/api`) once you have an API key.
 - `lib/mock-data.ts` — replace with a real fetch/query once there's a
   database to query.
+
+## Design system notes
+
+- **Type scale:** seven tiers (`text-micro` 10px, `caption` 11, `body` 13,
+  `lead` 16, `heading` 20, `title` 24, `display` 32), each with its own
+  line-height. Tailwind's default `text-sm` etc. are removed on purpose, so
+  every size comes from this list.
+- **Icons:** always `<Icon as={SomeLucideIcon} size="sm|md|lg|xl" />`, never a
+  raw pixel size.
+- **Dark mode:** class-based (`.dark` on `<html>`), chosen before first paint by
+  a tiny script in `layout.tsx`. Use semantic tokens (`bg-surface`,
+  `text-accent`, `bg-tint`), not `bg-white` / `text-sky-deep`, unless the
+  element is white *on* a sky-blue background.
+- **Contrast:** text pairs are meant to meet WCAG AA (4.5:1). `sky-deep`
+  (#1B72BC) and `coral` (#D24444) were nudged darker than the original
+  Doraemon Sky values for that reason. Bright `sky` can't carry white text, so
+  sky-blue headers use navy text and full-bleed screens use `.bg-hero`, which
+  reaches the deep blue by 40% down.
+- **Async-looking actions** call `wait()` from `lib/utils.ts` to fake latency;
+  swap those for the real request when the backend exists.
