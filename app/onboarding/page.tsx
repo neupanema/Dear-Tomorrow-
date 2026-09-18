@@ -1,59 +1,270 @@
-import { Bell, Lock, MapPin, Calendar } from "lucide-react";
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import {
+  AnimatePresence,
+  animate,
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  type PanInfo,
+} from "framer-motion";
+import { ArrowLeft, ArrowRight, Bell, Calendar, Lock, MapPin } from "lucide-react";
 import Button from "@/components/ui/Button";
+import {
+  MeetIllustration,
+  SealIllustration,
+  WriteIllustration,
+} from "@/components/onboarding/Illustrations";
+
+const SLIDES = [
+  {
+    title: "Write something today",
+    body: "A message, a photo, a feeling. Capture how today feels before it slips away.",
+    Art: WriteIllustration,
+  },
+  {
+    title: "Seal it away",
+    body: "Pick a date, a place, or both. Once it's sealed, there's no peeking.",
+    Art: SealIllustration,
+  },
+  {
+    title: "Meet it again later",
+    body: "When the moment arrives, your capsule opens and your past self says hello.",
+    Art: MeetIllustration,
+  },
+];
+
+const LAST = SLIDES.length - 1;
+const SWIPE_DISTANCE = 60;
+const SWIPE_VELOCITY = 400;
 
 export default function OnboardingPage() {
+  // direction: 1 = moving forward, -1 = back. Drives which way slides travel.
+  const [[index, direction], setPage] = useState<[number, number]>([0, 0]);
+  const reduceMotion = useReducedMotion();
+  const dragX = useMotionValue(0);
+
+  const next = useCallback(
+    () => setPage(([i]) => (i < LAST ? [i + 1, 1] : [i, 0])),
+    []
+  );
+  const prev = useCallback(
+    () => setPage(([i]) => (i > 0 ? [i - 1, -1] : [i, 0])),
+    []
+  );
+  const goTo = useCallback(
+    (to: number) => setPage(([i]) => (to === i ? [i, 0] : [to, to > i ? 1 : -1])),
+    []
+  );
+
+  // Keyboard: left/right arrows move between slides.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "ArrowRight") next();
+      if (e.key === "ArrowLeft") prev();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [next, prev]);
+
+  // Swipe (touch or mouse drag): follow the finger a little, then decide.
+  function onPan(_: PointerEvent, info: PanInfo) {
+    if (!reduceMotion) dragX.set(info.offset.x * 0.35);
+  }
+  function onPanEnd(_: PointerEvent, info: PanInfo) {
+    const { offset, velocity } = info;
+    if (offset.x < -SWIPE_DISTANCE || velocity.x < -SWIPE_VELOCITY) next();
+    else if (offset.x > SWIPE_DISTANCE || velocity.x > SWIPE_VELOCITY) prev();
+    animate(dragX, 0, { type: "spring", stiffness: 300, damping: 30 });
+  }
+
+  const slide = SLIDES[index];
+  const Art = slide.Art;
+  const isLast = index === LAST;
+
+  const variants = {
+    enter: (dir: number) => ({ opacity: 0, x: reduceMotion ? 0 : dir * 56 }),
+    center: { opacity: 1, x: 0 },
+    exit: (dir: number) => ({ opacity: 0, x: reduceMotion ? 0 : dir * -56 }),
+  };
+  const transition = { duration: reduceMotion ? 0.01 : 0.28, ease: "easeOut" as const };
+
   return (
-    <div className="min-h-screen lg:flex">
-      {/* Mobile: full-bleed gradient screen. Desktop: this becomes the left
-          half of a split screen, with room to breathe and a few floating
-          bits of the product to hint at what's inside. */}
-      <div className="min-h-screen lg:min-h-0 lg:w-1/2 bg-gradient-to-b lg:bg-gradient-to-br from-sky to-sky-deep flex flex-col items-center justify-center text-white text-center px-8 relative overflow-hidden">
-        <div className="hidden lg:block absolute -top-10 -left-10 w-40 h-40 rounded-full bg-white/10" />
-        <div className="hidden lg:block absolute bottom-10 right-10 w-24 h-24 rounded-full bg-white/10" />
-        <div className="hidden lg:flex absolute top-16 right-16 w-14 h-14 rounded-2xl bg-white/15 items-center justify-center rotate-6">
+    <motion.main
+      onPan={onPan}
+      onPanEnd={onPanEnd}
+      // pan-y: let the browser keep vertical scrolling, we take horizontal.
+      style={{ touchAction: "pan-y" }}
+      aria-roledescription="carousel"
+      aria-label="Welcome to Dear Tomorrow"
+      className="relative min-h-screen overflow-hidden select-none bg-gradient-to-b lg:bg-none from-sky to-sky-deep text-white lg:text-ink"
+    >
+      {/* Desktop: static split background so only the content animates. */}
+      <div aria-hidden className="hidden lg:block absolute inset-y-0 left-0 w-1/2 bg-gradient-to-br from-sky to-sky-deep overflow-hidden">
+        <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-white/10" />
+        <div className="absolute bottom-10 right-10 w-24 h-24 rounded-full bg-white/10" />
+        <div className="absolute top-16 right-16 w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center rotate-6 text-white">
           <Calendar size={22} />
         </div>
-        <div className="hidden lg:flex absolute bottom-24 left-16 w-14 h-14 rounded-2xl bg-white/15 items-center justify-center -rotate-6">
+        <div className="absolute bottom-24 left-16 w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center -rotate-6 text-white">
           <MapPin size={22} />
         </div>
-        <div className="hidden lg:flex absolute bottom-16 right-24 w-12 h-12 rounded-2xl bg-white/15 items-center justify-center rotate-12">
+        <div className="absolute bottom-16 right-24 w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center rotate-12 text-white">
           <Lock size={18} />
         </div>
+      </div>
+      <div aria-hidden className="hidden lg:block absolute inset-y-0 right-0 w-1/2 bg-white" />
 
-        <div className="w-[74px] h-[74px] rounded-[22px] bg-white flex items-center justify-center mb-5">
-          <Bell size={32} className="text-sky-deep" />
+      <div className="relative z-10 min-h-screen flex flex-col lg:grid lg:grid-cols-2">
+        {/* Illustration cell */}
+        <div className="flex-1 flex flex-col items-center px-8 pt-6 lg:pt-8 lg:justify-center lg:text-white">
+          <div className="self-start flex items-center gap-2 lg:absolute lg:top-8 lg:left-10">
+            <span className="w-8 h-8 rounded-xl bg-white text-sky-deep flex items-center justify-center">
+              <Bell size={16} />
+            </span>
+            <span className="font-display text-base text-white">Dear Tomorrow</span>
+          </div>
+
+          <div className="flex-1 flex items-center justify-center w-full pt-8 lg:pt-0">
+            <AnimatePresence mode="wait" custom={direction} initial={false}>
+              <motion.div
+                key={index}
+                custom={direction}
+                variants={variants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={transition}
+                className="w-full max-w-[280px] lg:max-w-[400px]"
+              >
+                <motion.div style={{ x: dragX }}>
+                  <Art className="w-full h-auto" />
+                </motion.div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
-        <h1 className="font-display text-2xl lg:text-4xl mb-2">Dear Tomorrow</h1>
-        <p className="text-sm lg:text-base opacity-90 leading-relaxed mb-6 max-w-[220px] lg:max-w-[320px]">
-          Leave something for the person you&apos;ll become.
-        </p>
-        <div className="w-full max-w-[220px] lg:hidden">
-          <Button href="/sign-in" variant="white">
-            Get started
-          </Button>
+
+        {/* Text + controls cell */}
+        <div className="flex flex-col items-center text-center px-8 pb-10 pt-4 lg:items-start lg:text-left lg:justify-center lg:px-20 lg:py-0">
+          <div aria-live="polite" className="w-full min-h-[148px] lg:min-h-[196px]">
+            <AnimatePresence mode="wait" custom={direction} initial={false}>
+              <motion.div
+                key={index}
+                custom={direction}
+                variants={variants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={transition}
+              >
+                <motion.div style={{ x: dragX }}>
+                  <p className="text-[11px] font-bold uppercase tracking-wide opacity-90 lg:opacity-100 lg:text-sky-deep mb-2">
+                    Step {index + 1} of {SLIDES.length}
+                  </p>
+                  <h1 className="font-display text-2xl lg:text-4xl leading-tight mb-2 lg:mb-4">
+                    {slide.title}
+                  </h1>
+                  <p className="text-sm lg:text-base leading-relaxed opacity-90 lg:opacity-100 lg:text-ink-soft mx-auto lg:mx-0 max-w-[280px] lg:max-w-md">
+                    {slide.body}
+                  </p>
+                </motion.div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* dots + arrows */}
+          <div className="flex items-center gap-4 mt-4 lg:mt-8">
+            <ArrowButton direction="prev" disabled={index === 0} onClick={prev} />
+            <div role="group" aria-label="Choose a slide" className="flex items-center gap-2">
+              {SLIDES.map((s, i) => (
+                <button
+                  key={s.title}
+                  type="button"
+                  onClick={() => goTo(i)}
+                  aria-label={`Go to slide ${i + 1}: ${s.title}`}
+                  aria-current={i === index ? "step" : undefined}
+                  className="p-1.5 -m-1.5 group"
+                >
+                  <span
+                    className={`block h-2 rounded-full transition-all duration-300 ${
+                      i === index
+                        ? "w-6 bg-white lg:bg-sky-deep"
+                        : "w-2 bg-white/50 lg:bg-line group-hover:bg-white/80 lg:group-hover:bg-sky"
+                    }`}
+                  />
+                </button>
+              ))}
+            </div>
+            <ArrowButton direction="next" disabled={isLast} onClick={next} />
+          </div>
+
+          {/* CTA slot: fixed height so nothing jumps when it swaps. */}
+          <div className="w-full max-w-[240px] h-[76px] mt-6 lg:mt-8 flex items-start justify-center lg:justify-start">
+            <AnimatePresence mode="wait" initial={false}>
+              {isLast ? (
+                <motion.div
+                  key="cta"
+                  className="w-full"
+                  initial={{ opacity: 0, y: reduceMotion ? 0 : 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="lg:hidden">
+                    <Button href="/sign-in" variant="white">
+                      Get started
+                    </Button>
+                  </div>
+                  <div className="hidden lg:block">
+                    <Button href="/sign-in">Get started</Button>
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="skip"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Link
+                    href="/sign-in"
+                    className="inline-block text-sm font-bold underline underline-offset-4 opacity-90 lg:opacity-100 lg:text-ink-soft hover:opacity-100 py-3 px-2"
+                  >
+                    Skip
+                  </Link>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
+    </motion.main>
+  );
+}
 
-      {/* Desktop-only right half: a quick, calm explanation of the idea,
-          plus the real call to action so it doesn't feel duplicated. */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-center px-20 bg-white">
-        <p className="text-xs font-bold text-sky-deep uppercase tracking-wide mb-3">
-          A letter to your future self
-        </p>
-        <h2 className="font-display text-3xl text-ink mb-4 leading-snug">
-          Write it today.
-          <br />
-          Meet it again later.
-        </h2>
-        <p className="text-sm text-ink-soft leading-relaxed mb-8 max-w-md">
-          Seal a message and a photo, then choose what unlocks it — a future
-          date, a place you&apos;ll return to, or both. Dear Tomorrow holds
-          onto it until that moment actually arrives.
-        </p>
-        <div className="max-w-[240px]">
-          <Button href="/sign-in">Get started</Button>
-        </div>
-      </div>
-    </div>
+function ArrowButton({
+  direction,
+  disabled,
+  onClick,
+}: {
+  direction: "prev" | "next";
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  const Icon = direction === "prev" ? ArrowLeft : ArrowRight;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={direction === "prev" ? "Previous slide" : "Next slide"}
+      className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 text-white hover:bg-white/30 lg:bg-[#EAF6FF] lg:text-sky-deep lg:hover:bg-[#D8EBFB] transition-colors disabled:opacity-30 disabled:pointer-events-none"
+    >
+      <Icon size={18} />
+    </button>
   );
 }
