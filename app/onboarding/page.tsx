@@ -124,7 +124,7 @@ export default function OnboardingPage() {
         <div className="flex-1 flex flex-col items-center px-8 pt-6 lg:pt-8 lg:justify-center lg:text-white">
           <div className="self-start flex items-center gap-2 lg:absolute lg:top-8 lg:left-10">
             <BrandMark tone="light" />
-            <span className="font-display text-base text-white">Dear Tomorrow</span>
+            <span className="font-display text-lead text-white">Dear Tomorrow</span>
           </div>
 
           <div className="flex-1 flex items-center justify-center w-full pt-8 lg:pt-0">
@@ -161,13 +161,13 @@ export default function OnboardingPage() {
                 transition={transition}
               >
                 <motion.div style={{ x: dragX }}>
-                  <p className="text-[11px] font-bold uppercase tracking-wide opacity-90 lg:opacity-100 lg:text-sky-deep mb-2">
+                  <p className="text-caption font-bold uppercase tracking-wide opacity-90 lg:opacity-100 lg:text-sky-deep mb-2">
                     Step {index + 1} of {SLIDES.length}
                   </p>
-                  <h1 className="font-display text-2xl lg:text-4xl leading-tight mb-2 lg:mb-4">
+                  <h1 className="font-display text-title lg:text-display mb-2 lg:mb-4">
                     {slide.title}
                   </h1>
-                  <p className="text-sm lg:text-base leading-relaxed opacity-90 lg:opacity-100 lg:text-ink-soft mx-auto lg:mx-0 max-w-[280px] lg:max-w-md">
+                  <p className="text-lead opacity-90 lg:opacity-100 lg:text-ink-soft mx-auto lg:mx-0 max-w-[300px] lg:max-w-md">
                     {slide.body}
                   </p>
                 </motion.div>
@@ -186,7 +186,7 @@ export default function OnboardingPage() {
                   onClick={() => goTo(i)}
                   aria-label={`Go to slide ${i + 1}: ${s.title}`}
                   aria-current={i === index ? "step" : undefined}
-                  className="p-1.5 -m-1.5 group"
+                  className="p-2 -m-2 group"
                 >
                   <span
                     className={`block h-2 rounded-full transition-all duration-300 ${
@@ -232,7 +232,7 @@ export default function OnboardingPage() {
                 >
                   <Link
                     href="/sign-in"
-                    className="inline-block text-sm font-bold underline underline-offset-4 opacity-90 lg:opacity-100 lg:text-ink-soft hover:opacity-100 py-3 px-2"
+                    className="inline-block text-body font-bold underline underline-offset-4 opacity-90 lg:opacity-100 lg:text-ink-soft hover:opacity-100 py-3 px-2"
                   >
                     Skip
                   </Link>

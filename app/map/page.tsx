@@ -108,7 +108,7 @@ export default function MapPage() {
 
       <div className="flex-1 p-4 pb-24 lg:px-10 lg:py-8 lg:pb-16">
         {hasPlaceCapsules && (
-          <div className="flex gap-1.5 mb-3 lg:mb-6">
+          <div className="flex gap-2 mb-3 lg:mb-6">
             <Chip label="All" active={filter === "all"} onClick={() => setFilter("all")} />
             <Chip
               label="Sealed"
@@ -134,18 +134,18 @@ export default function MapPage() {
           </div>
           {!isEmpty && (
             <div className="w-72 shrink-0">
-              <p className="text-xs font-bold text-ink-soft uppercase tracking-wide mb-3">
+              <p className="text-caption font-bold text-ink-soft uppercase tracking-wide mb-3">
                 {placeCapsules.length} place{placeCapsules.length === 1 ? "" : "s"}
               </p>
-              <div className="flex flex-col gap-2.5">
+              <div className="flex flex-col gap-3">
                 {placeCapsules.map((capsule) => (
                   <div key={capsule.id} className="card flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-[#EAF6FF] text-sky-deep flex items-center justify-center flex-shrink-0">
                       <Icon as={MapPin} size="sm" />
                     </div>
                     <div className="min-w-0">
-                      <p className="font-bold text-xs text-ink truncate">{capsule.title}</p>
-                      <p className="text-[10.5px] text-ink-soft truncate">
+                      <p className="font-bold text-body text-ink truncate">{capsule.title}</p>
+                      <p className="text-caption text-ink-soft truncate">
                         {capsule.unlockLocation?.label}
                       </p>
                     </div>

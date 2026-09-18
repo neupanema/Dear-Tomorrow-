@@ -31,7 +31,7 @@ export default function LocationPicker({ onChange }: LocationPickerProps) {
 
   return (
     <div>
-      <div className="flex items-center gap-2 bg-white border border-line rounded-xl px-3 py-2.5 mb-2.5 text-ink-soft text-[11px]">
+      <div className="flex items-center gap-2 bg-white border border-line rounded-xl px-3 py-3 mb-3 text-ink-soft text-body">
         <Icon as={Search} size="sm" />
         <span>Search for a place</span>
       </div>
@@ -61,7 +61,7 @@ export default function LocationPicker({ onChange }: LocationPickerProps) {
           </div>
         )}
       </div>
-      <p className="text-[10px] text-ink-soft text-center mt-2">
+      <p className="text-caption text-ink-soft text-center mt-2">
         Tap anywhere on the map to drop a pin
       </p>
     </div>

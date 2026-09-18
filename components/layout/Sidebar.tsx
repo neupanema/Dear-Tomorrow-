@@ -17,9 +17,9 @@ export default function Sidebar() {
 
   return (
     <aside className="hidden lg:flex lg:flex-col w-64 shrink-0 border-r border-line bg-white min-h-screen px-5 py-8">
-      <div className="flex items-center gap-2.5 px-2 mb-10">
+      <div className="flex items-center gap-3 px-2 mb-10">
         <BrandMark />
-        <span className="font-display text-lg text-ink">Dear Tomorrow</span>
+        <span className="font-display text-heading text-ink">Dear Tomorrow</span>
       </div>
 
       <Link href="/new-capsule" className="btn-primary w-full flex items-center justify-center gap-2 mb-8">
@@ -34,7 +34,7 @@ export default function Sidebar() {
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-colors ${
+              className={`flex items-center gap-3 px-3 py-3 rounded-xl text-body font-bold transition-colors ${
                 active
                   ? "bg-[#EAF6FF] text-sky-deep"
                   : "text-ink-soft hover:bg-cream"
@@ -47,13 +47,13 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className="mt-auto flex items-center gap-2.5 px-2 pt-6 border-t border-line">
-        <div className="w-8 h-8 rounded-full bg-sky-deep text-white flex items-center justify-center font-display text-xs">
+      <div className="mt-auto flex items-center gap-3 px-2 pt-6 border-t border-line">
+        <div className="w-8 h-8 rounded-full bg-sky-deep text-white flex items-center justify-center font-display text-body">
           M
         </div>
         <div>
-          <p className="text-xs font-bold text-ink">Mahesh</p>
-          <p className="text-[10px] text-ink-soft">mahesh@ulm.edu</p>
+          <p className="text-body font-bold text-ink">Mahesh</p>
+          <p className="text-caption text-ink-soft">mahesh@ulm.edu</p>
         </div>
       </div>
     </aside>

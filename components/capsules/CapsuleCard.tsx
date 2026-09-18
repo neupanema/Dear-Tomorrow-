@@ -59,7 +59,7 @@ export default function CapsuleCard({
       exit="exit"
       whileHover={{ y: -2 }}
       whileTap={{ scale: 0.98 }}
-      className="card flex items-center gap-3 mb-2.5 lg:mb-0 lg:p-4 transition-colors hover:border-sky"
+      className="card flex items-center gap-3 mb-3 lg:mb-0 lg:p-4 transition-colors hover:border-sky"
     >
       <div
         className={`w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0 ${bg}`}
@@ -67,11 +67,11 @@ export default function CapsuleCard({
         <Icon as={Glyph} size="sm" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="font-bold text-xs text-ink truncate">{capsule.title}</p>
-        <p className="text-[10px] text-ink-soft mt-0.5">{subtitle(capsule)}</p>
+        <p className="font-bold text-body text-ink truncate">{capsule.title}</p>
+        <p className="text-caption text-ink-soft mt-1">{subtitle(capsule)}</p>
       </div>
       {capsule.status === "unlocked" && (
-        <span className="text-[9px] font-bold text-sky-deep bg-[#EAF6FF] px-2 py-1 rounded-full">
+        <span className="text-micro font-bold text-sky-deep bg-[#EAF6FF] px-2 py-1 rounded-full">
           Open
         </span>
       )}

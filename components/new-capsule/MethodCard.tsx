@@ -30,7 +30,7 @@ export default function MethodCard({
       whileHover={disabled ? undefined : { y: -2 }}
       whileTap={disabled ? undefined : { scale: 0.98 }}
       transition={{ type: "spring", stiffness: 400, damping: 28 }}
-      className={`w-full text-left rounded-2xl p-3.5 mb-2.5 border-2 flex gap-3 items-start transition-colors ${
+      className={`w-full text-left rounded-2xl p-4 mb-3 border-2 flex gap-3 items-start transition-colors ${
         active
           ? "border-sky-deep bg-[#EAF6FF]"
           : "border-line bg-white"
@@ -46,15 +46,15 @@ export default function MethodCard({
         <Icon as={Glyph} size="sm" />
       </motion.div>
       <div>
-        <p className="font-bold text-xs text-ink flex items-center gap-1.5">
+        <p className="font-bold text-body text-ink flex items-center gap-2">
           {title}
           {badge && (
-            <span className="text-[8px] font-extrabold bg-sun text-[#7a5300] px-1.5 py-0.5 rounded-full">
+            <span className="text-micro font-bold bg-sun text-[#7a5300] px-2 py-1 rounded-full">
               {badge}
             </span>
           )}
         </p>
-        <p className="text-[10.5px] text-ink-soft mt-0.5 leading-snug">
+        <p className="text-caption text-ink-soft mt-1">
           {subtitle}
         </p>
       </div>

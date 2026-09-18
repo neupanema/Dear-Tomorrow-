@@ -24,12 +24,12 @@ export default function SettingsPage() {
       <div className="flex-1 p-4 pb-24 lg:px-10 lg:py-8 lg:pb-16">
         <div className="lg:grid lg:grid-cols-[280px_1fr] lg:gap-8 lg:items-start">
           <div className="card flex items-center gap-3 mb-4 lg:mb-0 lg:flex-col lg:text-center lg:py-8">
-            <div className="w-11 h-11 lg:w-16 lg:h-16 rounded-full bg-sky-deep text-white flex items-center justify-center font-display text-base lg:text-xl">
+            <div className="w-11 h-11 lg:w-16 lg:h-16 rounded-full bg-sky-deep text-white flex items-center justify-center font-display text-lead lg:text-heading">
               M
             </div>
             <div>
-              <p className="font-bold text-sm text-ink lg:mt-3">Mahesh</p>
-              <p className="text-[10.5px] text-ink-soft">mahesh@ulm.edu</p>
+              <p className="font-bold text-lead text-ink lg:mt-3">Mahesh</p>
+              <p className="text-caption text-ink-soft">mahesh@ulm.edu</p>
             </div>
           </div>
 
@@ -40,14 +40,14 @@ export default function SettingsPage() {
                 type="button"
                 // TODO: each of these opens a real settings screen later
                 onClick={() => toast("This setting isn't available yet", { variant: "info" })}
-                className="w-full bg-white border border-line rounded-xl px-3 py-2.5 lg:py-4 mb-2 lg:mb-0 flex items-center gap-2.5 text-xs text-ink"
+                className="w-full bg-white border border-line rounded-xl px-3 py-3 lg:py-4 mb-2 lg:mb-0 flex items-center gap-3 text-body text-ink"
               >
                 <span className="w-8 h-8 rounded-lg bg-[#EAF6FF] text-sky-deep flex items-center justify-center">
                   <Icon as={Glyph} size="sm" />
                 </span>
                 {label}
                 {badge && (
-                  <span className="text-[8px] font-extrabold bg-sun text-[#7a5300] px-1.5 py-0.5 rounded-full">
+                  <span className="text-micro font-bold bg-sun text-[#7a5300] px-2 py-1 rounded-full">
                     {badge}
                   </span>
                 )}

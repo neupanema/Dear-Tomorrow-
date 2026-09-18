@@ -16,7 +16,7 @@ export default function Chip({ label, active, onClick }: ChipProps) {
       aria-pressed={!!active}
       whileTap={{ scale: 0.94 }}
       transition={{ type: "spring", stiffness: 500, damping: 30 }}
-      className={`text-xs font-bold px-3 py-1.5 rounded-full border-2 transition-colors ${
+      className={`text-body font-bold px-3 py-2 rounded-full border-2 transition-colors ${
         active
           ? "bg-sky-deep text-white border-sky-deep"
           : "bg-white text-ink-soft border-line hover:border-sky hover:text-sky-deep"

@@ -46,7 +46,7 @@ export default function Button({
   ...rest
 }: ButtonProps) {
   const inactive = loading || disabled;
-  const classes = `font-display text-sm text-center py-3 px-4 rounded-2xl w-full
+  const classes = `font-display text-lead text-center py-3 px-4 rounded-2xl w-full
     transition-colors ${variantClasses[variant]} ${className}
     disabled:opacity-60 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:brightness-100`;
 

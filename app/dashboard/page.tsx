@@ -45,7 +45,7 @@ export default function DashboardPage() {
       <div className="flex-1 p-4 pb-24 lg:px-10 lg:py-8 lg:pb-16">
         {hasCapsules && (
           <div className="flex items-center justify-between mb-3 lg:mb-6">
-            <div className="flex gap-1.5">
+            <div className="flex gap-2">
               <Chip label="All" active={filter === "all"} onClick={() => setFilter("all")} />
               <Chip
                 label="Sealed"
@@ -62,7 +62,7 @@ export default function DashboardPage() {
             {/* On desktop there's no floating FAB — the "new capsule" action
                 lives in the sidebar, and again here for convenience. */}
             <div className="hidden lg:block">
-              <Button href="/new-capsule" className="!w-auto !inline-flex items-center gap-1.5 !py-2.5 !px-4">
+              <Button href="/new-capsule" className="!w-auto !inline-flex items-center gap-2 !py-3 !px-4">
                 <Icon as={Plus} size="sm" />
                 New capsule
               </Button>

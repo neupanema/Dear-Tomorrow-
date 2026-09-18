@@ -41,11 +41,11 @@ export default function CapsuleCalendar({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-2.5">
+      <div className="flex items-center justify-between mb-3">
         <button onClick={() => changeMonth(-1)} aria-label="Previous month">
           <Icon as={ChevronLeft} size="sm" className="text-ink" />
         </button>
-        <span className="font-bold text-xs text-ink">
+        <span className="font-bold text-body text-ink">
           {viewDate.toLocaleDateString("en-US", {
             month: "long",
             year: "numeric",
@@ -58,7 +58,7 @@ export default function CapsuleCalendar({
 
       <div className="grid grid-cols-7 gap-1 text-center">
         {DOW.map((d, i) => (
-          <div key={i} className="text-[9px] font-bold text-ink-soft pb-1">
+          <div key={i} className="text-micro font-bold text-ink-soft pb-1">
             {d}
           </div>
         ))}
@@ -69,7 +69,7 @@ export default function CapsuleCalendar({
             <button
               key={i}
               onClick={() => onChange(new Date(year, month, day))}
-              className={`text-[11px] py-2 rounded-lg ${
+              className={`text-body py-2 rounded-lg ${
                 isSelected(day)
                   ? "bg-coral text-white font-bold"
                   : "text-ink hover:bg-line"

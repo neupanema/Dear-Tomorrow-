@@ -6,7 +6,7 @@ interface ReviewSummaryProps {
 
 function Row({ k, v }: { k: string; v: string }) {
   return (
-    <div className="flex justify-between py-1.5 border-b border-line last:border-0 text-[11px]">
+    <div className="flex justify-between py-2 border-b border-line last:border-0 text-caption">
       <span className="text-ink-soft">{k}</span>
       <span className="text-ink font-bold text-right max-w-[65%] truncate">
         {v}

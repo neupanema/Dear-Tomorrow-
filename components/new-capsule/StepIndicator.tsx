@@ -6,7 +6,7 @@ export default function StepIndicator({
   total: number;
 }) {
   return (
-    <div className="flex gap-1.5 justify-center mb-4">
+    <div className="flex gap-2 justify-center mb-4">
       {Array.from({ length: total }).map((_, i) => (
         <div
           key={i}

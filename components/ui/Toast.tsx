@@ -103,7 +103,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 <span className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${tile}`}>
                   <Icon as={glyph} />
                 </span>
-                <p className="flex-1 text-sm font-bold">{t.message}</p>
+                <p className="flex-1 text-body font-bold">{t.message}</p>
                 <button
                   type="button"
                   onClick={() => dismiss(t.id)}

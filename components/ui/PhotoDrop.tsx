@@ -52,7 +52,7 @@ export default function PhotoDrop({ onChange }: PhotoDropProps) {
         {uploading && (
           <div
             role="status"
-            className="absolute inset-0 bg-ink/50 flex items-center justify-center gap-2 text-white text-xs font-bold"
+            className="absolute inset-0 bg-ink/50 flex items-center justify-center gap-2 text-white text-body font-bold"
           >
             <Icon as={Loader2} className="animate-spin" />
             Adding photo...
@@ -75,7 +75,7 @@ export default function PhotoDrop({ onChange }: PhotoDropProps) {
     <button
       type="button"
       onClick={() => inputRef.current?.click()}
-      className="w-full h-16 rounded-2xl border-2 border-dashed border-sky flex flex-col items-center justify-center gap-1 text-sky-deep text-xs font-bold bg-[repeating-linear-gradient(45deg,#EAF6FF,#EAF6FF_8px,#F7FBFF_8px,#F7FBFF_16px)]"
+      className="w-full h-16 rounded-2xl border-2 border-dashed border-sky flex flex-col items-center justify-center gap-1 text-sky-deep text-body font-bold bg-[repeating-linear-gradient(45deg,#EAF6FF,#EAF6FF_8px,#F7FBFF_8px,#F7FBFF_16px)]"
     >
       <Icon as={Camera} size="md" />
       <span>Tap to add a photo</span>

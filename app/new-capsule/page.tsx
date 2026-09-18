@@ -105,8 +105,8 @@ export default function NewCapsulePage() {
                 transition={{ duration: 0.3 }}
                 className="flex flex-col items-center"
               >
-                <h2 className="font-display text-lg lg:text-2xl mb-1.5">Capsule sealed</h2>
-                <p className="text-xs lg:text-sm opacity-90 leading-relaxed mb-5 max-w-[190px] lg:max-w-xs">
+                <h2 className="font-display text-heading lg:text-title mb-2">Capsule sealed</h2>
+                <p className="text-body lg:text-lead opacity-90 mb-5 max-w-[190px] lg:max-w-xs">
                   We&apos;ll let you know the moment it&apos;s ready to open.
                 </p>
                 <div className="w-full min-w-[200px]">
@@ -119,7 +119,7 @@ export default function NewCapsulePage() {
               <motion.h2
                 key="sealing"
                 exit={{ opacity: 0 }}
-                className="font-display text-lg lg:text-2xl"
+                className="font-display text-heading lg:text-title"
               >
                 Sealing your capsule...
               </motion.h2>
@@ -133,7 +133,7 @@ export default function NewCapsulePage() {
   return (
     <div className="min-h-screen lg:flex lg:items-center lg:justify-center lg:bg-cream lg:p-10">
       <div className="bg-white flex flex-col min-h-screen lg:min-h-0 lg:flex-row lg:max-w-4xl lg:w-full lg:rounded-3xl lg:overflow-hidden lg:shadow-2xl">
-        <div className="flex-1 flex flex-col lg:max-w-md">
+        <div className="flex-1 flex flex-col">
           <TopBar
             title={
               step === 1
@@ -170,7 +170,7 @@ export default function NewCapsulePage() {
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="Dear future me, I hope you didn't give up on..."
                     rows={4}
-                    className="w-full bg-white border-2 border-dashed border-[#C9DFF7] rounded-2xl p-3 text-xs text-ink outline-none resize-none"
+                    className="w-full bg-white border-2 border-dashed border-[#C9DFF7] rounded-2xl p-3 text-lead text-ink outline-none resize-none"
                   />
                   <label className="field-label">Photo</label>
                   <PhotoDrop onChange={setPhoto} />
@@ -243,7 +243,7 @@ export default function NewCapsulePage() {
                 type="button"
                 onClick={back}
                 disabled={saving}
-                className="w-full text-center text-xs text-ink-soft font-bold mt-2 py-1 disabled:opacity-40"
+                className="w-full text-center text-body text-ink-soft font-bold mt-2 py-1 disabled:opacity-40"
               >
                 Back
               </button>
@@ -254,23 +254,23 @@ export default function NewCapsulePage() {
         {/* Desktop-only: a live preview of the sealed capsule, so the form
             doesn't feel like it's floating alone in empty space. */}
         <div className="hidden lg:flex lg:w-80 bg-cream border-l border-line flex-col items-center justify-center p-8">
-          <p className="text-xs font-bold text-ink-soft uppercase tracking-wide mb-5">
+          <p className="text-caption font-bold text-ink-soft uppercase tracking-wide mb-5">
             Live preview
           </p>
           <div className="w-56 rounded-[28px] bg-gradient-to-b from-sky to-sky-deep p-6 text-white text-center shadow-lg">
             <div className="w-16 h-16 rounded-full bg-white/15 border-2 border-white/40 flex items-center justify-center mx-auto mb-3">
               <Icon as={Lock} size="lg" />
             </div>
-            <p className="font-display text-sm mb-1">Sealed</p>
-            <p className="text-[10px] opacity-90 leading-snug mb-3">
+            <p className="font-display text-lead mb-1">Sealed</p>
+            <p className="text-caption opacity-90 mb-3">
               Something from your past is waiting for you.
             </p>
-            <div className="bg-white/18 px-3 py-1 rounded-full text-[9px] font-bold inline-block">
+            <div className="bg-white/18 px-3 py-1 rounded-full text-caption font-bold inline-block">
               {unlockLabel}
             </div>
           </div>
           {message && (
-            <p className="text-[10.5px] text-ink-soft text-center mt-5 italic leading-relaxed max-w-[220px]">
+            <p className="text-caption text-ink-soft text-center mt-5 italic max-w-[220px]">
               &ldquo;{message.slice(0, 90)}
               {message.length > 90 ? "..." : ""}&rdquo;
             </p>

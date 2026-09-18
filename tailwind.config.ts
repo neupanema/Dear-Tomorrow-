@@ -6,6 +6,19 @@ const config: Config = {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
+    // Type scale. This REPLACES Tailwind's default text-xs/sm/base/... on
+    // purpose, so every size in the app comes from these seven tiers and a
+    // stray text-sm can't sneak back in. Each tier carries its own
+    // line-height, so pages don't need leading-* utilities.
+    fontSize: {
+      micro: ["10px", "14px"], // badges, nav labels
+      caption: ["11px", "16px"], // field labels, meta text
+      body: ["13px", "20px"], // default UI text, list rows, chips
+      lead: ["16px", "24px"], // buttons, inputs, hero paragraphs
+      heading: ["20px", "26px"], // page + empty-state titles
+      title: ["24px", "30px"], // hero / status titles
+      display: ["32px", "38px"], // desktop hero titles
+    },
     extend: {
       colors: {
         // "Doraemon Sky" palette — keep these as the single source of truth

@@ -40,13 +40,13 @@ export default function CapsuleDetailPage() {
         >
           <Icon as={Lock} size="xl" className="lg:w-10 lg:h-10" />
         </motion.div>
-        <h2 className="font-display text-base lg:text-2xl mb-1.5">Sealed</h2>
-        <p className="text-xs lg:text-sm opacity-90 leading-relaxed mb-4">
+        <h2 className="font-display text-heading lg:text-title mb-2">Sealed</h2>
+        <p className="text-body lg:text-lead opacity-90 mb-4">
           Something from your past
           <br />
           is waiting for you.
         </p>
-        <div className="bg-white/18 px-3.5 py-1.5 rounded-full text-[10.5px] lg:text-xs font-bold">
+        <div className="bg-white/18 px-4 py-2 rounded-full text-caption lg:text-body font-bold">
           {capsule.unlockMethod === "place"
             ? `Opens when I return to ${capsule.unlockLocation?.label}`
             : `Opens ${capsule.unlockDate ? formatDate(capsule.unlockDate) : ""}`}
@@ -74,13 +74,13 @@ export default function CapsuleDetailPage() {
           animate={{ opacity: opening ? 0 : 1, y: opening ? 8 : 0 }}
           transition={{ duration: 0.25 }}
         >
-          <h2 className="font-display text-base lg:text-2xl text-ink mb-1.5">
+          <h2 className="font-display text-heading lg:text-title text-ink mb-2">
             Ready to open
           </h2>
-          <p className="text-xs lg:text-sm text-ink-soft leading-relaxed mb-4">
+          <p className="text-body lg:text-lead text-ink-soft mb-4">
             Take a breath. This is you, {daysAgo(capsule.createdAt)} days ago.
           </p>
-          <p className="inline-flex items-center gap-1 text-[10.5px] lg:text-xs font-bold text-sky-deep">
+          <p className="inline-flex items-center gap-1 text-caption lg:text-body font-bold text-sky-deep">
             Tap to open
             <Icon as={ArrowRight} size="sm" />
           </p>
@@ -110,7 +110,7 @@ export default function CapsuleDetailPage() {
             initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15, duration: 0.4 }}
-            className="font-display text-white text-lg lg:text-2xl text-center leading-snug"
+            className="font-display text-white text-heading lg:text-title text-center"
           >
             Your past has
             <br />
@@ -122,7 +122,7 @@ export default function CapsuleDetailPage() {
             initial={{ opacity: 0, scale: 0.92 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.3, type: "spring", stiffness: 200, damping: 20 }}
-            className={`h-32 lg:h-56 rounded-2xl mb-3 bg-gradient-to-br ${capsule.photoGradient} flex items-center justify-center text-white text-xs lg:text-sm font-bold`}
+            className={`h-32 lg:h-56 rounded-2xl mb-3 bg-gradient-to-br ${capsule.photoGradient} flex items-center justify-center text-white text-body font-bold`}
           >
             Your photo from that day
           </motion.div>
@@ -130,7 +130,7 @@ export default function CapsuleDetailPage() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.4 }}
-            className="bg-cream rounded-2xl p-3 lg:p-5 border-l-4 border-sun text-xs lg:text-sm text-ink leading-relaxed"
+            className="bg-cream rounded-2xl p-3 lg:p-5 border-l-4 border-sun text-lead text-ink"
           >
             &ldquo;{capsule.message}&rdquo;
           </motion.div>
@@ -138,7 +138,7 @@ export default function CapsuleDetailPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.75, duration: 0.4 }}
-            className="text-[10px] lg:text-xs text-ink-soft text-center mt-2 lg:mt-3"
+            className="text-caption text-ink-soft text-center mt-2 lg:mt-3"
           >
             Written {daysAgo(capsule.createdAt)} days ago
           </motion.p>

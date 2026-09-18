@@ -42,8 +42,8 @@ export default function EmptyState({
       >
         {illustration}
       </motion.div>
-      <h2 className="font-display text-lg text-ink mb-1">{title}</h2>
-      <p className="text-sm text-ink-soft leading-relaxed max-w-[260px] mb-5">{body}</p>
+      <h2 className="font-display text-heading text-ink mb-1">{title}</h2>
+      <p className="text-body text-ink-soft max-w-[260px] mb-5">{body}</p>
       <div className="w-full max-w-[220px]">
         <Button
           href={action.href}

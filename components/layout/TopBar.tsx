@@ -37,7 +37,7 @@ export default function TopBar({
         </Link>
       )}
       <h1
-        className={`font-display text-lg lg:text-3xl ${backHref ? "text-center lg:text-left" : ""} ${
+        className={`font-display text-heading lg:text-display ${backHref ? "text-center lg:text-left lg:pl-8" : ""} ${
           isBrand ? "text-white" : "text-ink"
         }`}
       >
@@ -45,7 +45,7 @@ export default function TopBar({
       </h1>
       {subtitle && (
         <p
-          className={`text-xs lg:text-sm mt-0.5 lg:mt-1.5 ${backHref ? "text-center lg:text-left" : ""} ${
+          className={`text-body lg:text-lead mt-1 lg:mt-2 ${backHref ? "text-center lg:text-left lg:pl-8" : ""} ${
             isBrand ? "text-white/90" : "text-ink-soft"
           }`}
         >
