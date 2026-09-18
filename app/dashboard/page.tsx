@@ -8,9 +8,11 @@ import CapsuleCard from "@/components/capsules/CapsuleCard";
 import FabButton from "@/components/capsules/FabButton";
 import Button from "@/components/ui/Button";
 import Chip from "@/components/ui/Chip";
-import { MOCK_CAPSULES } from "@/lib/mock-data";
-import { Plus } from "lucide-react";
 import Icon from "@/components/ui/Icon";
+import EmptyState from "@/components/ui/EmptyState";
+import { EmptyCapsulesIllustration } from "@/components/ui/EmptyIllustrations";
+import { MOCK_CAPSULES } from "@/lib/mock-data";
+import { Lock, Plus, Sparkles } from "lucide-react";
 
 type Filter = "all" | "sealed" | "unlocked";
 
@@ -22,6 +24,8 @@ export default function DashboardPage() {
     (c) => c.status === "unlocked"
   ).length;
 
+  const hasCapsules = MOCK_CAPSULES.length > 0;
+
   const visibleCapsules = useMemo(() => {
     if (filter === "all") return MOCK_CAPSULES;
     return MOCK_CAPSULES.filter((c) => c.status === filter);
@@ -31,34 +35,40 @@ export default function DashboardPage() {
     <AppShell>
       <TopBar
         title="Your capsules"
-        subtitle={`${sealedCount} sealed, ${unlockedCount} ready to open`}
+        subtitle={
+          hasCapsules
+            ? `${sealedCount} sealed, ${unlockedCount} ready to open`
+            : "Nothing sealed yet"
+        }
       />
 
       <div className="flex-1 p-4 pb-24 lg:px-10 lg:py-8 lg:pb-16">
-        <div className="flex items-center justify-between mb-3 lg:mb-6">
-          <div className="flex gap-1.5">
-            <Chip label="All" active={filter === "all"} onClick={() => setFilter("all")} />
-            <Chip
-              label="Sealed"
-              active={filter === "sealed"}
-              onClick={() => setFilter("sealed")}
-            />
-            <Chip
-              label="Opened"
-              active={filter === "unlocked"}
-              onClick={() => setFilter("unlocked")}
-            />
-          </div>
+        {hasCapsules && (
+          <div className="flex items-center justify-between mb-3 lg:mb-6">
+            <div className="flex gap-1.5">
+              <Chip label="All" active={filter === "all"} onClick={() => setFilter("all")} />
+              <Chip
+                label="Sealed"
+                active={filter === "sealed"}
+                onClick={() => setFilter("sealed")}
+              />
+              <Chip
+                label="Opened"
+                active={filter === "unlocked"}
+                onClick={() => setFilter("unlocked")}
+              />
+            </div>
 
-          {/* On desktop there's no floating FAB — the "new capsule" action
-              lives in the sidebar, and again here for convenience. */}
-          <div className="hidden lg:block">
-            <Button href="/new-capsule" className="!w-auto !inline-flex items-center gap-1.5 !py-2.5 !px-4">
-              <Icon as={Plus} size="sm" />
-              New capsule
-            </Button>
+            {/* On desktop there's no floating FAB — the "new capsule" action
+                lives in the sidebar, and again here for convenience. */}
+            <div className="hidden lg:block">
+              <Button href="/new-capsule" className="!w-auto !inline-flex items-center gap-1.5 !py-2.5 !px-4">
+                <Icon as={Plus} size="sm" />
+                New capsule
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-4">
           <AnimatePresence mode="popLayout" initial>
@@ -68,16 +78,40 @@ export default function DashboardPage() {
           </AnimatePresence>
         </div>
 
-        {visibleCapsules.length === 0 && (
-          <p className="text-center text-xs text-ink-soft mt-10">
-            Nothing here yet.
-          </p>
+        {!hasCapsules && (
+          <EmptyState
+            className="mt-10 lg:mt-24"
+            illustration={<EmptyCapsulesIllustration className="w-48 h-auto lg:w-56" />}
+            title="Your first capsule awaits"
+            body="Write a note to the person you'll become, seal it, and we'll hold onto it until the moment arrives."
+            action={{ label: "Create a capsule", icon: Plus, href: "/new-capsule" }}
+          />
+        )}
+
+        {hasCapsules && visibleCapsules.length === 0 && (
+          <EmptyState
+            className="mt-10"
+            illustration={
+              <span className="w-14 h-14 rounded-2xl bg-[#EAF6FF] text-sky-deep flex items-center justify-center">
+                <Icon as={filter === "sealed" ? Lock : Sparkles} size="lg" />
+              </span>
+            }
+            title={filter === "sealed" ? "No sealed capsules" : "Nothing opened yet"}
+            body={
+              filter === "sealed"
+                ? "Everything you've written is ready to open."
+                : "Capsules show up here once they unlock and you open them."
+            }
+            action={{ label: "Show all capsules", variant: "secondary", onClick: () => setFilter("all") }}
+          />
         )}
       </div>
 
-      <div className="lg:hidden">
-        <FabButton />
-      </div>
+      {hasCapsules && (
+        <div className="lg:hidden">
+          <FabButton />
+        </div>
+      )}
     </AppShell>
   );
 }

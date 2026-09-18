@@ -22,6 +22,12 @@ const config: Config = {
         },
         cream: "#FFF8EC",
         line: "#EAF0FA",
+        // Hand-drawn placeholder map (map page, location picker, empty state).
+        map: {
+          land: "#DCEFE0",
+          road: "#F5F1DD",
+          park: "#C9E3D0",
+        },
       },
       fontFamily: {
         display: ["var(--font-baloo)", "cursive"],
