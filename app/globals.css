@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  background-color: #eaf6ff;
+  color: #1b2a4a;
+}
+
+/* shared little building blocks used across pages */
+@layer components {
+  .btn-primary {
+    @apply bg-coral text-white font-display text-sm text-center py-3 px-4 rounded-2xl
+           shadow-[0_8px_16px_-6px_rgba(235,78,78,0.5)]
+           active:scale-[0.98] transition-transform;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-sky-deep font-display text-sm text-center py-3 px-4 rounded-2xl
+           border-2 border-line active:scale-[0.98] transition-transform;
+  }
+
+  .field-label {
+    @apply text-[11px] font-bold text-ink-soft uppercase tracking-wide mb-1.5 mt-3 block;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl border-2 border-line p-3;
+  }
+}
