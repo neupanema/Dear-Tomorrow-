@@ -15,7 +15,7 @@ export default function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex border-t border-line bg-white">
+    <nav className="flex border-t border-line bg-surface">
       {TABS.map(({ href, label, icon: Glyph }) => {
         const active = pathname === href;
         return (
@@ -23,7 +23,7 @@ export default function BottomNav() {
             key={href}
             href={href}
             className={`flex-1 flex flex-col items-center gap-1 py-3 text-micro font-bold ${
-              active ? "text-sky-deep" : "text-ink-soft"
+              active ? "text-accent" : "text-ink-soft"
             }`}
           >
             <Icon as={Glyph} size="md" />

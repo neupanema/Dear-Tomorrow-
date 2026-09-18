@@ -32,9 +32,9 @@ export default function MethodCard({
       transition={{ type: "spring", stiffness: 400, damping: 28 }}
       className={`w-full text-left rounded-2xl p-4 mb-3 border-2 flex gap-3 items-start transition-colors ${
         active
-          ? "border-sky-deep bg-[#EAF6FF]"
-          : "border-line bg-white"
-      } ${disabled ? "opacity-50" : "hover:border-sky"}`}
+          ? "border-accent bg-tint"
+          : "border-line bg-surface"
+      } ${disabled ? "opacity-50" : "hover:border-accent"}`}
     >
       <motion.div
         animate={{ scale: active ? 1.08 : 1, rotate: active ? -6 : 0 }}
@@ -49,7 +49,7 @@ export default function MethodCard({
         <p className="font-bold text-body text-ink flex items-center gap-2">
           {title}
           {badge && (
-            <span className="text-micro font-bold bg-sun text-[#7a5300] px-2 py-1 rounded-full">
+            <span className="text-micro font-bold bg-sun text-on-sun px-2 py-1 rounded-full">
               {badge}
             </span>
           )}

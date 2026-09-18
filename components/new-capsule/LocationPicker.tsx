@@ -31,21 +31,21 @@ export default function LocationPicker({ onChange }: LocationPickerProps) {
 
   return (
     <div>
-      <div className="flex items-center gap-2 bg-white border border-line rounded-xl px-3 py-3 mb-3 text-ink-soft text-body">
+      <div className="flex items-center gap-2 bg-surface border border-line rounded-xl px-3 py-3 mb-3 text-ink-soft text-body">
         <Icon as={Search} size="sm" />
         <span>Search for a place</span>
       </div>
 
       <div
         onClick={handleClick}
-        className="relative h-56 rounded-2xl overflow-hidden bg-[#DCEFE0] cursor-crosshair"
+        className="relative h-56 rounded-2xl overflow-hidden bg-map-land cursor-crosshair"
       >
-        <div className="absolute left-0 right-0 top-[40%] h-2.5 bg-[#F5F1DD]" />
-        <div className="absolute top-0 bottom-0 left-[35%] w-2.5 bg-[#F5F1DD]" />
-        <div className="absolute left-[10%] top-[8%] w-[20%] h-[22%] bg-[#C9E3D0] rounded-sm" />
-        <div className="absolute left-[50%] top-[15%] w-[28%] h-[18%] bg-[#C9E3D0] rounded-sm" />
-        <div className="absolute left-[52%] top-[55%] w-[22%] h-[26%] bg-[#C9E3D0] rounded-sm" />
-        <div className="absolute left-[8%] top-[58%] w-[18%] h-[24%] bg-[#C9E3D0] rounded-sm" />
+        <div className="absolute left-0 right-0 top-[40%] h-2.5 bg-map-road" />
+        <div className="absolute top-0 bottom-0 left-[35%] w-2.5 bg-map-road" />
+        <div className="absolute left-[10%] top-[8%] w-[20%] h-[22%] bg-map-park rounded-sm" />
+        <div className="absolute left-[50%] top-[15%] w-[28%] h-[18%] bg-map-park rounded-sm" />
+        <div className="absolute left-[52%] top-[55%] w-[22%] h-[26%] bg-map-park rounded-sm" />
+        <div className="absolute left-[8%] top-[58%] w-[18%] h-[24%] bg-map-park rounded-sm" />
 
         {pin && (
           <div

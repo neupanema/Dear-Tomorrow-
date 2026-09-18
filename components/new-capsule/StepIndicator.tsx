@@ -11,7 +11,7 @@ export default function StepIndicator({
         <div
           key={i}
           className={`h-1.5 w-5 rounded-full transition-colors duration-300 ${
-            i < step ? "bg-sky-deep" : "bg-line"
+            i < step ? "bg-accent" : "bg-line"
           }`}
         />
       ))}

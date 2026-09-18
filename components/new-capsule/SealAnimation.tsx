@@ -72,9 +72,9 @@ export default function SealAnimation({ onComplete, className }: SealAnimationPr
           transition={{ ...spring, delay: T.close }}
         >
           <g transform="translate(62 30)" strokeLinejoin="round">
-            <path d="M0 80 V38 a38 38 0 0 1 76 0 V80 Z" className="fill-coral stroke-ink" strokeWidth="3.5" />
+            <path d="M0 80 V38 a38 38 0 0 1 76 0 V80 Z" className="fill-coral stroke-night" strokeWidth="3.5" />
             <path d="M14 36 V56" className="stroke-white" strokeWidth="6" strokeLinecap="round" opacity="0.7" />
-            <rect x="0" y="66" width="76" height="14" className="fill-sun stroke-ink" strokeWidth="3.5" />
+            <rect x="0" y="66" width="76" height="14" className="fill-sun stroke-night" strokeWidth="3.5" />
           </g>
         </motion.g>
 
@@ -85,7 +85,7 @@ export default function SealAnimation({ onComplete, className }: SealAnimationPr
           transition={{ ...spring, delay: T.close }}
         >
           <g transform="translate(62 110)" strokeLinejoin="round">
-            <path d="M0 0 V42 a38 38 0 0 0 76 0 V0 Z" className="fill-white stroke-ink" strokeWidth="3.5" />
+            <path d="M0 0 V42 a38 38 0 0 0 76 0 V0 Z" className="fill-white stroke-night" strokeWidth="3.5" />
             <path d="M14 70 V88" className="stroke-sky" strokeWidth="6" strokeLinecap="round" opacity="0.5" />
           </g>
         </motion.g>
@@ -115,16 +115,16 @@ export default function SealAnimation({ onComplete, className }: SealAnimationPr
         >
           <motion.path
             d="M-11 -6 V-16 a11 11 0 0 1 22 0 V-6"
-            className="stroke-ink"
+            className="stroke-night"
             strokeWidth="4.5"
             strokeLinecap="round"
             initial={{ y: -9 }}
             animate={{ y: 0 }}
             transition={{ type: "spring", stiffness: 500, damping: 22, delay: T.shackle }}
           />
-          <rect x="-19" y="-8" width="38" height="32" rx="9" className="fill-sun stroke-ink" strokeWidth="3.5" />
-          <circle cx="0" cy="8" r="4.5" className="fill-ink" />
-          <path d="M0 10 V16" className="stroke-ink" strokeWidth="3.5" strokeLinecap="round" />
+          <rect x="-19" y="-8" width="38" height="32" rx="9" className="fill-sun stroke-night" strokeWidth="3.5" />
+          <circle cx="0" cy="8" r="4.5" className="fill-night" />
+          <path d="M0 10 V16" className="stroke-night" strokeWidth="3.5" strokeLinecap="round" />
         </motion.g>
       </g>
 

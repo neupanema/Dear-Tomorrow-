@@ -33,16 +33,16 @@ function MapArea({
   overlay?: React.ReactNode;
 }) {
   return (
-    <div className={`relative ${heightClass} rounded-2xl overflow-hidden bg-[#DCEFE0]`}>
-      <div className="absolute left-0 right-0 top-[30%] h-2.5 bg-[#F5F1DD]" />
-      <div className="absolute left-0 right-0 top-[65%] h-2.5 bg-[#F5F1DD]" />
-      <div className="absolute top-0 bottom-0 left-[25%] w-2.5 bg-[#F5F1DD]" />
-      <div className="absolute top-0 bottom-0 left-[65%] w-2.5 bg-[#F5F1DD]" />
-      <div className="absolute left-[5%] top-[5%] w-[15%] h-[18%] bg-[#C9E3D0] rounded-sm" />
-      <div className="absolute left-[35%] top-[8%] w-[24%] h-[16%] bg-[#C9E3D0] rounded-sm" />
-      <div className="absolute left-[72%] top-[10%] w-[22%] h-[14%] bg-[#C9E3D0] rounded-sm" />
-      <div className="absolute left-[8%] top-[70%] w-[18%] h-[20%] bg-[#C9E3D0] rounded-sm" />
-      <div className="absolute left-[40%] top-[72%] w-[20%] h-[20%] bg-[#C9E3D0] rounded-sm" />
+    <div className={`relative ${heightClass} rounded-2xl overflow-hidden bg-map-land`}>
+      <div className="absolute left-0 right-0 top-[30%] h-2.5 bg-map-road" />
+      <div className="absolute left-0 right-0 top-[65%] h-2.5 bg-map-road" />
+      <div className="absolute top-0 bottom-0 left-[25%] w-2.5 bg-map-road" />
+      <div className="absolute top-0 bottom-0 left-[65%] w-2.5 bg-map-road" />
+      <div className="absolute left-[5%] top-[5%] w-[15%] h-[18%] bg-map-park rounded-sm" />
+      <div className="absolute left-[35%] top-[8%] w-[24%] h-[16%] bg-map-park rounded-sm" />
+      <div className="absolute left-[72%] top-[10%] w-[22%] h-[14%] bg-map-park rounded-sm" />
+      <div className="absolute left-[8%] top-[70%] w-[18%] h-[20%] bg-map-park rounded-sm" />
+      <div className="absolute left-[40%] top-[72%] w-[20%] h-[20%] bg-map-park rounded-sm" />
 
       {placeCapsules.map((capsule, i) => {
         const pos = PIN_POSITIONS[i % PIN_POSITIONS.length];
@@ -61,7 +61,7 @@ function MapArea({
       })}
 
       {overlay && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white/75 backdrop-blur-[1px] overflow-y-auto">
+        <div className="absolute inset-0 flex items-center justify-center bg-surface/75 backdrop-blur-[1px] overflow-y-auto">
           {overlay}
         </div>
       )}
@@ -92,7 +92,7 @@ export default function MapPage() {
     <EmptyState
       className="py-6"
       illustration={
-        <span className="w-14 h-14 rounded-2xl bg-[#EAF6FF] text-sky-deep flex items-center justify-center">
+        <span className="w-14 h-14 rounded-2xl bg-tint text-accent flex items-center justify-center">
           <Icon as={MapPin} size="lg" />
         </span>
       }
@@ -140,7 +140,7 @@ export default function MapPage() {
               <div className="flex flex-col gap-3">
                 {placeCapsules.map((capsule) => (
                   <div key={capsule.id} className="card flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-[#EAF6FF] text-sky-deep flex items-center justify-center flex-shrink-0">
+                    <div className="w-9 h-9 rounded-xl bg-tint text-accent flex items-center justify-center flex-shrink-0">
                       <Icon as={MapPin} size="sm" />
                     </div>
                     <div className="min-w-0">

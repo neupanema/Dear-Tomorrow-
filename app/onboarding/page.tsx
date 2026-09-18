@@ -101,10 +101,10 @@ export default function OnboardingPage() {
       style={{ touchAction: "pan-y" }}
       aria-roledescription="carousel"
       aria-label="Welcome to Dear Tomorrow"
-      className="relative min-h-screen overflow-hidden select-none bg-gradient-to-b lg:bg-none from-sky to-sky-deep text-white lg:text-ink"
+      className="relative min-h-screen overflow-hidden select-none bg-gradient-to-b lg:bg-none from-hero-top to-hero-bottom text-white lg:text-ink"
     >
       {/* Desktop: static split background so only the content animates. */}
-      <div aria-hidden className="hidden lg:block absolute inset-y-0 left-0 w-1/2 bg-gradient-to-br from-sky to-sky-deep overflow-hidden">
+      <div aria-hidden className="hidden lg:block absolute inset-y-0 left-0 w-1/2 bg-gradient-to-br from-hero-top to-hero-bottom overflow-hidden">
         <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-white/10" />
         <div className="absolute bottom-10 right-10 w-24 h-24 rounded-full bg-white/10" />
         <div className="absolute top-16 right-16 w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center rotate-6 text-white">
@@ -117,7 +117,7 @@ export default function OnboardingPage() {
           <Icon as={Lock} size="md" />
         </div>
       </div>
-      <div aria-hidden className="hidden lg:block absolute inset-y-0 right-0 w-1/2 bg-white" />
+      <div aria-hidden className="hidden lg:block absolute inset-y-0 right-0 w-1/2 bg-surface" />
 
       <div className="relative z-10 min-h-screen flex flex-col lg:grid lg:grid-cols-2">
         {/* Illustration cell */}
@@ -161,7 +161,7 @@ export default function OnboardingPage() {
                 transition={transition}
               >
                 <motion.div style={{ x: dragX }}>
-                  <p className="text-caption font-bold uppercase tracking-wide opacity-90 lg:opacity-100 lg:text-sky-deep mb-2">
+                  <p className="text-caption font-bold uppercase tracking-wide opacity-90 lg:opacity-100 lg:text-accent mb-2">
                     Step {index + 1} of {SLIDES.length}
                   </p>
                   <h1 className="font-display text-title lg:text-display mb-2 lg:mb-4">
@@ -191,8 +191,8 @@ export default function OnboardingPage() {
                   <span
                     className={`block h-2 rounded-full transition-all duration-300 ${
                       i === index
-                        ? "w-6 bg-white lg:bg-sky-deep"
-                        : "w-2 bg-white/50 lg:bg-line group-hover:bg-white/80 lg:group-hover:bg-sky"
+                        ? "w-6 bg-white lg:bg-accent"
+                        : "w-2 bg-white/50 lg:bg-line group-hover:bg-white/80 lg:group-hover:bg-accent/60"
                     }`}
                   />
                 </button>
@@ -262,7 +262,7 @@ function ArrowButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={direction === "prev" ? "Previous slide" : "Next slide"}
-      className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 text-white hover:bg-white/30 lg:bg-[#EAF6FF] lg:text-sky-deep lg:hover:bg-[#D8EBFB] transition-colors disabled:opacity-30 disabled:pointer-events-none"
+      className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 text-white hover:bg-white/30 lg:bg-tint lg:text-accent lg:hover:bg-line transition-colors disabled:opacity-30 disabled:pointer-events-none"
     >
       <Icon as={Glyph} size="md" />
     </button>

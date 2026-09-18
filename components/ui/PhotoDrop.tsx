@@ -52,7 +52,7 @@ export default function PhotoDrop({ onChange }: PhotoDropProps) {
         {uploading && (
           <div
             role="status"
-            className="absolute inset-0 bg-ink/50 flex items-center justify-center gap-2 text-white text-body font-bold"
+            className="absolute inset-0 bg-black/50 flex items-center justify-center gap-2 text-white text-body font-bold"
           >
             <Icon as={Loader2} className="animate-spin" />
             Adding photo...
@@ -62,7 +62,7 @@ export default function PhotoDrop({ onChange }: PhotoDropProps) {
           type="button"
           onClick={() => handleFile(null)}
           disabled={uploading}
-          className="absolute top-2 right-2 h-7 w-7 rounded-full bg-white/90 flex items-center justify-center disabled:opacity-0"
+          className="absolute top-2 right-2 h-7 w-7 rounded-full bg-surface/90 flex items-center justify-center disabled:opacity-0"
           aria-label="Remove photo"
         >
           <Icon as={X} size="sm" className="text-ink" />
@@ -75,7 +75,7 @@ export default function PhotoDrop({ onChange }: PhotoDropProps) {
     <button
       type="button"
       onClick={() => inputRef.current?.click()}
-      className="w-full h-16 rounded-2xl border-2 border-dashed border-sky flex flex-col items-center justify-center gap-1 text-sky-deep text-body font-bold bg-[repeating-linear-gradient(45deg,#EAF6FF,#EAF6FF_8px,#F7FBFF_8px,#F7FBFF_16px)]"
+      className="w-full h-16 rounded-2xl border-2 border-dashed border-accent flex flex-col items-center justify-center gap-1 text-accent text-body font-bold bg-[repeating-linear-gradient(45deg,rgb(var(--tint))_0,rgb(var(--tint))_8px,rgb(var(--surface))_8px,rgb(var(--surface))_16px)]"
     >
       <Icon as={Camera} size="md" />
       <span>Tap to add a photo</span>

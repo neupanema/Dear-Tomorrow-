@@ -24,7 +24,7 @@ export default function TopBar({
       className={`relative px-4 pt-4 pb-4 lg:px-10 lg:pt-10 lg:pb-8 ${
         isBrand
           ? "bg-sky lg:rounded-b-[2.5rem]"
-          : "bg-white border-b border-line lg:border-0"
+          : "bg-surface border-b border-line lg:border-0"
       }`}
     >
       {backHref && (

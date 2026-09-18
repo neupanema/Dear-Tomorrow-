@@ -36,9 +36,9 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 const MAX_VISIBLE = 3;
 
 const VARIANTS: Record<Variant, { glyph: typeof Check; tile: string }> = {
-  success: { glyph: Check, tile: "bg-sky-deep text-white" },
+  success: { glyph: Check, tile: "bg-accent text-on-accent" },
   error: { glyph: AlertCircle, tile: "bg-coral text-white" },
-  info: { glyph: Info, tile: "bg-sun text-[#7a5300]" },
+  info: { glyph: Info, tile: "bg-sun text-on-sun" },
 };
 
 /**
@@ -98,7 +98,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.15 } }}
                 transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                className="pointer-events-auto flex items-center gap-3 w-full max-w-sm bg-white text-ink border-2 border-line rounded-2xl pl-2 pr-1 py-2 shadow-[0_12px_28px_-8px_rgba(27,42,74,0.35)]"
+                className="pointer-events-auto flex items-center gap-3 w-full max-w-sm bg-surface text-ink border-2 border-line rounded-2xl pl-2 pr-1 py-2 shadow-[0_12px_28px_-8px_rgba(27,42,74,0.35)]"
               >
                 <span className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${tile}`}>
                   <Icon as={glyph} />

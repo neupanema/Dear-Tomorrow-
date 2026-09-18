@@ -1,9 +1,16 @@
 import type { Config } from "tailwindcss";
 
+// Every palette color is a CSS variable (defined per theme in app/globals.css)
+// wrapped so Tailwind's opacity modifiers keep working (bg-sky/50, etc).
+const token = (name: string) => `rgb(var(--${name}) / <alpha-value>)`;
+
 const config: Config = {
+  darkMode: "class",
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    // lib/ holds the mock data whose gradient class names must be generated.
+    "./lib/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     // Type scale. This REPLACES Tailwind's default text-xs/sm/base/... on
@@ -21,25 +28,45 @@ const config: Config = {
     },
     extend: {
       colors: {
-        // "Doraemon Sky" palette — keep these as the single source of truth
-        // for color across the app. Change them here, not in components.
+        // "Doraemon Sky" palette (light) / "Midnight Time Capsule" (dark).
+        // The values live in app/globals.css; these names are the single
+        // source of truth for components. Change a color there, not in
+        // components.
         sky: {
-          DEFAULT: "#3FA9F5",
-          deep: "#1E7FD1",
+          DEFAULT: token("sky"),
+          deep: token("sky-deep"),
         },
-        sun: "#FFD34D",
-        coral: "#EB4E4E",
+        sun: token("sun"),
+        coral: token("coral"),
         ink: {
-          DEFAULT: "#1B2A4A",
-          soft: "#5B6B8C",
+          DEFAULT: token("ink"),
+          soft: token("ink-soft"),
         },
-        cream: "#FFF8EC",
-        line: "#EAF0FA",
+        cream: token("cream"),
+        line: {
+          DEFAULT: token("line"),
+          strong: token("line-strong"),
+        },
+
+        // Roles that split what used to be one color doing two jobs:
+        surface: token("surface"), // cards, headers, nav (was bg-white)
+        tint: token("tint"), // soft blue wash behind icons / active rows
+        accent: token("accent"), // links, active states, focus (sky-deep -> gold in dark)
+        "on-accent": token("on-accent"), // text on an accent fill
+        "on-sun": token("on-sun"), // text on a sun/gold fill
+        hero: {
+          top: token("hero-top"), // full-bleed gradient screens
+          bottom: token("hero-bottom"),
+        },
+        // Fixed (not themed) outline color for the illustrations, which
+        // always sit on white/colored fills.
+        night: "#1B2A4A",
+
         // Hand-drawn placeholder map (map page, location picker, empty state).
         map: {
-          land: "#DCEFE0",
-          road: "#F5F1DD",
-          park: "#C9E3D0",
+          land: token("map-land"),
+          road: token("map-road"),
+          park: token("map-park"),
         },
       },
       fontFamily: {

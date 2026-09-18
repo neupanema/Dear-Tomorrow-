@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Baloo_2, Nunito } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
+import { themeInitScript } from "@/components/ui/ThemeProvider";
 
 // Baloo 2 = playful headings / brand voice, Nunito = everyday body text.
 // Both are wired up as CSS variables so Tailwind can reach them
@@ -29,7 +30,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    // suppressHydrationWarning: the init script adds the "dark" class to <html>
+    // before React loads, which is intentional.
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className={`${baloo.variable} ${nunito.variable} font-body bg-cream`}>
         {/* No fixed width here anymore — each page decides its own layout:
             a centered "phone-width" column below the lg breakpoint, and a

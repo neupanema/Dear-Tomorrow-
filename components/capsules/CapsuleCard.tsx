@@ -14,7 +14,7 @@ function badge(capsule: Capsule) {
     return { icon: Sparkles, bg: "bg-coral" };
   }
   if (capsule.unlockMethod === "place") {
-    return { icon: MapPin, bg: "bg-sun text-[#7a5300]" };
+    return { icon: MapPin, bg: "bg-sun text-on-sun" };
   }
   return { icon: Lock, bg: "bg-sky-deep" };
 }
@@ -59,7 +59,7 @@ export default function CapsuleCard({
       exit="exit"
       whileHover={{ y: -2 }}
       whileTap={{ scale: 0.98 }}
-      className="card flex items-center gap-3 mb-3 lg:mb-0 lg:p-4 transition-colors hover:border-sky"
+      className="card flex items-center gap-3 mb-3 lg:mb-0 lg:p-4 transition-colors hover:border-accent"
     >
       <div
         className={`w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0 ${bg}`}
@@ -71,7 +71,7 @@ export default function CapsuleCard({
         <p className="text-caption text-ink-soft mt-1">{subtitle(capsule)}</p>
       </div>
       {capsule.status === "unlocked" && (
-        <span className="text-micro font-bold text-sky-deep bg-[#EAF6FF] px-2 py-1 rounded-full">
+        <span className="text-micro font-bold text-accent bg-tint px-2 py-1 rounded-full">
           Open
         </span>
       )}

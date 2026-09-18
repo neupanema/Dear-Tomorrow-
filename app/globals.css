@@ -2,10 +2,68 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Theme tokens, as space-separated RGB so Tailwind can add opacity.
+   :root is "Doraemon Sky". .dark is "Midnight Time Capsule", built from
+   navy #0B1224 and gold #F2C879 so it reads as the same product at night. */
+:root {
+  --sky: 63 169 245; /* #3FA9F5 */
+  --sky-deep: 30 127 209; /* #1E7FD1 */
+  --sun: 255 211 77; /* #FFD34D */
+  --coral: 235 78 78; /* #EB4E4E */
+  --ink: 27 42 74; /* #1B2A4A */
+  --ink-soft: 91 107 140; /* #5B6B8C */
+  --cream: 255 248 236; /* #FFF8EC  page background */
+  --line: 234 240 250; /* #EAF0FA */
+  --line-strong: 201 223 247; /* #C9DFF7 */
+
+  --surface: 255 255 255; /* cards, headers, nav */
+  --tint: 234 246 255; /* #EAF6FF */
+  --accent: 30 127 209; /* = sky-deep */
+  --on-accent: 255 255 255;
+  --on-sun: 122 83 0; /* #7A5300 */
+  --hero-top: 63 169 245; /* = sky */
+  --hero-bottom: 30 127 209; /* = sky-deep */
+
+  --map-land: 220 239 224; /* #DCEFE0 */
+  --map-road: 245 241 221; /* #F5F1DD */
+  --map-park: 201 227 208; /* #C9E3D0 */
+
+  color-scheme: light;
+}
+
+.dark {
+  --sky: 27 44 92; /* #1B2C5C  header / hero top */
+  --sky-deep: 46 82 170; /* #2E52AA  fills that carry white text */
+  --sun: 242 200 121; /* #F2C879  the gold */
+  --coral: 235 78 78; /* unchanged: primary actions stay recognisable */
+  --ink: 238 241 250; /* #EEF1FA  text */
+  --ink-soft: 156 168 200; /* #9CA8C8 */
+  --cream: 11 18 36; /* #0B1224  page background */
+  --line: 36 48 79; /* #24304F */
+  --line-strong: 52 68 109; /* #34446D */
+
+  --surface: 18 27 51; /* #121B33 */
+  --tint: 24 36 70; /* #182446 */
+  --accent: 242 200 121; /* gold */
+  --on-accent: 11 18 36; /* navy on gold */
+  --on-sun: 59 42 0; /* #3B2A00 */
+  --hero-top: 27 44 92; /* #1B2C5C */
+  --hero-bottom: 11 18 36; /* fades into the page */
+
+  --map-land: 19 32 56; /* #132038 */
+  --map-road: 34 51 90; /* #22335A */
+  --map-park: 26 46 75; /* #1A2E4B */
+
+  color-scheme: dark;
+}
+
 html,
 body {
-  background-color: #eaf6ff;
-  color: #1b2a4a;
+  background-color: rgb(var(--cream));
+  color: rgb(var(--ink));
+}
+body {
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 /* shared little building blocks used across pages */
@@ -17,7 +75,7 @@ body {
   }
 
   .btn-secondary {
-    @apply bg-white text-sky-deep font-display text-lead text-center py-3 px-4 rounded-2xl
+    @apply bg-surface text-accent font-display text-lead text-center py-3 px-4 rounded-2xl
            border-2 border-line active:scale-[0.98] transition-transform;
   }
 
@@ -26,6 +84,6 @@ body {
   }
 
   .card {
-    @apply bg-white rounded-2xl border-2 border-line p-3;
+    @apply bg-surface rounded-2xl border-2 border-line p-3;
   }
 }

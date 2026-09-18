@@ -92,7 +92,7 @@ export default function DashboardPage() {
           <EmptyState
             className="mt-10"
             illustration={
-              <span className="w-14 h-14 rounded-2xl bg-[#EAF6FF] text-sky-deep flex items-center justify-center">
+              <span className="w-14 h-14 rounded-2xl bg-tint text-accent flex items-center justify-center">
                 <Icon as={filter === "sealed" ? Lock : Sparkles} size="lg" />
               </span>
             }

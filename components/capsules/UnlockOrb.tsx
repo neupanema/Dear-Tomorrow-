@@ -92,7 +92,7 @@ export default function UnlockOrb({ opening, onOpen, onOpened }: UnlockOrbProps)
             ? { duration: SHAKE, ease: "easeInOut" }
             : { type: "spring", stiffness: 400, damping: 20 }
         }
-        className="relative w-full h-full rounded-full focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-sky-deep"
+        className="relative w-full h-full rounded-full focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-accent"
       >
         <svg
           viewBox="-70 -70 140 140"
@@ -111,7 +111,7 @@ export default function UnlockOrb({ opening, onOpen, onOpened }: UnlockOrbProps)
               animate={half(dir)}
               style={{ transformOrigin: "center", transformBox: "fill-box" }}
             >
-              <path d={fill} className="fill-white" />
+              <path d={fill} className="fill-surface" />
               <path d={arc} className="stroke-sun" strokeWidth="4" strokeLinecap="round" />
             </motion.g>
           ))}
@@ -147,7 +147,7 @@ export default function UnlockOrb({ opening, onOpen, onOpened }: UnlockOrbProps)
         {/* the open-lock icon, sucked away as the crack appears */}
         <motion.span
           aria-hidden
-          className="absolute inset-0 flex items-center justify-center text-sky-deep pointer-events-none"
+          className="absolute inset-0 flex items-center justify-center text-accent pointer-events-none"
           animate={opening ? { scale: [1, 1.25, 0], opacity: [1, 1, 0] } : { scale: 1, opacity: 1 }}
           transition={{ duration: 0.4, delay: 0.1 }}
         >

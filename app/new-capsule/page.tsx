@@ -78,7 +78,7 @@ export default function NewCapsulePage() {
   if (phase !== "editing") {
     const done = phase === "sealed";
     return (
-      <div className="min-h-screen bg-gradient-to-b lg:bg-gradient-to-br from-sky to-sky-deep flex flex-col items-center justify-center text-white text-center px-8">
+      <div className="min-h-screen bg-gradient-to-b lg:bg-gradient-to-br from-hero-top to-hero-bottom flex flex-col items-center justify-center text-white text-center px-8">
         <div className="relative mb-2">
           <SealAnimation onComplete={handleSealed} className="w-48 h-52 lg:w-56 lg:h-60" />
           <AnimatePresence>
@@ -132,7 +132,7 @@ export default function NewCapsulePage() {
 
   return (
     <div className="min-h-screen lg:flex lg:items-center lg:justify-center lg:bg-cream lg:p-10">
-      <div className="bg-white flex flex-col min-h-screen lg:min-h-0 lg:flex-row lg:max-w-4xl lg:w-full lg:rounded-3xl lg:overflow-hidden lg:shadow-2xl">
+      <div className="bg-surface flex flex-col min-h-screen lg:min-h-0 lg:flex-row lg:max-w-4xl lg:w-full lg:rounded-3xl lg:overflow-hidden lg:shadow-2xl">
         <div className="flex-1 flex flex-col">
           <TopBar
             title={
@@ -170,7 +170,7 @@ export default function NewCapsulePage() {
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="Dear future me, I hope you didn't give up on..."
                     rows={4}
-                    className="w-full bg-white border-2 border-dashed border-[#C9DFF7] rounded-2xl p-3 text-lead text-ink outline-none resize-none"
+                    className="w-full bg-surface border-2 border-dashed border-line-strong rounded-2xl p-3 text-lead text-ink outline-none resize-none"
                   />
                   <label className="field-label">Photo</label>
                   <PhotoDrop onChange={setPhoto} />
@@ -257,7 +257,7 @@ export default function NewCapsulePage() {
           <p className="text-caption font-bold text-ink-soft uppercase tracking-wide mb-5">
             Live preview
           </p>
-          <div className="w-56 rounded-[28px] bg-gradient-to-b from-sky to-sky-deep p-6 text-white text-center shadow-lg">
+          <div className="w-56 rounded-[28px] bg-gradient-to-b from-hero-top to-hero-bottom p-6 text-white text-center shadow-lg">
             <div className="w-16 h-16 rounded-full bg-white/15 border-2 border-white/40 flex items-center justify-center mx-auto mb-3">
               <Icon as={Lock} size="lg" />
             </div>
@@ -265,7 +265,7 @@ export default function NewCapsulePage() {
             <p className="text-caption opacity-90 mb-3">
               Something from your past is waiting for you.
             </p>
-            <div className="bg-white/18 px-3 py-1 rounded-full text-caption font-bold inline-block">
+            <div className="bg-white/20 px-3 py-1 rounded-full text-caption font-bold inline-block">
               {unlockLabel}
             </div>
           </div>

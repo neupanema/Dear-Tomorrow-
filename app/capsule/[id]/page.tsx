@@ -25,7 +25,7 @@ export default function CapsuleDetailPage() {
   // --- sealed: nothing to tap, it opens itself when the condition is met ---
   if (capsule.status === "sealed") {
     return (
-      <div className="min-h-screen bg-gradient-to-b lg:bg-gradient-to-br from-sky to-sky-deep flex flex-col items-center justify-center text-white text-center px-8 relative">
+      <div className="min-h-screen bg-gradient-to-b lg:bg-gradient-to-br from-hero-top to-hero-bottom flex flex-col items-center justify-center text-white text-center px-8 relative">
         <Link
           href="/dashboard"
           className="absolute left-4 top-4 lg:left-8 lg:top-8 text-white"
@@ -46,7 +46,7 @@ export default function CapsuleDetailPage() {
           <br />
           is waiting for you.
         </p>
-        <div className="bg-white/18 px-4 py-2 rounded-full text-caption lg:text-body font-bold">
+        <div className="bg-white/20 px-4 py-2 rounded-full text-caption lg:text-body font-bold">
           {capsule.unlockMethod === "place"
             ? `Opens when I return to ${capsule.unlockLocation?.label}`
             : `Opens ${capsule.unlockDate ? formatDate(capsule.unlockDate) : ""}`}
@@ -80,7 +80,7 @@ export default function CapsuleDetailPage() {
           <p className="text-body lg:text-lead text-ink-soft mb-4">
             Take a breath. This is you, {daysAgo(capsule.createdAt)} days ago.
           </p>
-          <p className="inline-flex items-center gap-1 text-caption lg:text-body font-bold text-sky-deep">
+          <p className="inline-flex items-center gap-1 text-caption lg:text-body font-bold text-accent">
             Tap to open
             <Icon as={ArrowRight} size="sm" />
           </p>
@@ -117,7 +117,7 @@ export default function CapsuleDetailPage() {
             something to tell you
           </motion.h1>
         </div>
-        <div className="flex-1 p-4 lg:p-8 bg-white">
+        <div className="flex-1 p-4 lg:p-8 bg-surface">
           <motion.div
             initial={{ opacity: 0, scale: 0.92 }}
             animate={{ opacity: 1, scale: 1 }}

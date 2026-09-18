@@ -18,8 +18,8 @@ export default function Chip({ label, active, onClick }: ChipProps) {
       transition={{ type: "spring", stiffness: 500, damping: 30 }}
       className={`text-body font-bold px-3 py-2 rounded-full border-2 transition-colors ${
         active
-          ? "bg-sky-deep text-white border-sky-deep"
-          : "bg-white text-ink-soft border-line hover:border-sky hover:text-sky-deep"
+          ? "bg-accent text-on-accent border-accent"
+          : "bg-surface text-ink-soft border-line hover:border-accent hover:text-accent"
       }`}
     >
       {label}
