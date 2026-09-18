@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Lock, MapPin, Sparkles } from "lucide-react";
 import { Capsule } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
+import Icon from "@/components/ui/Icon";
 
 const MotionLink = motion.create(Link);
 
@@ -45,7 +46,7 @@ export default function CapsuleCard({
   capsule: Capsule;
   index?: number;
 }) {
-  const { icon: Icon, bg } = badge(capsule);
+  const { icon: Glyph, bg } = badge(capsule);
 
   return (
     <MotionLink
@@ -63,7 +64,7 @@ export default function CapsuleCard({
       <div
         className={`w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0 ${bg}`}
       >
-        <Icon size={16} />
+        <Icon as={Glyph} size="sm" />
       </div>
       <div className="flex-1 min-w-0">
         <p className="font-bold text-xs text-ink truncate">{capsule.title}</p>

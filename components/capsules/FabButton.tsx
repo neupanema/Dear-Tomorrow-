@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
+import Icon from "@/components/ui/Icon";
 
 const MotionLink = motion.create(Link);
 
@@ -19,7 +20,7 @@ export default function FabButton() {
       whileTap={{ scale: 0.92 }}
       transition={{ type: "spring", stiffness: 350, damping: 20, delay: 0.25 }}
     >
-      <Plus size={26} />
+      <Icon as={Plus} size="lg" />
     </MotionLink>
   );
 }

@@ -1,6 +1,7 @@
 import { Bell, Lock, MapPin, Settings as SettingsIcon, Video, ChevronRight } from "lucide-react";
 import TopBar from "@/components/layout/TopBar";
 import AppShell from "@/components/layout/AppShell";
+import Icon from "@/components/ui/Icon";
 
 const ITEMS = [
   { icon: Bell, label: "Notifications" },
@@ -28,13 +29,13 @@ export default function SettingsPage() {
           </div>
 
           <div className="lg:grid lg:grid-cols-2 lg:gap-3">
-            {ITEMS.map(({ icon: Icon, label, badge }) => (
+            {ITEMS.map(({ icon: Glyph, label, badge }) => (
               <button
                 key={label}
                 className="w-full bg-white border border-line rounded-xl px-3 py-2.5 lg:py-4 mb-2 lg:mb-0 flex items-center gap-2.5 text-xs text-ink"
               >
-                <span className="w-[26px] h-[26px] rounded-lg bg-[#EAF6FF] text-sky-deep flex items-center justify-center">
-                  <Icon size={13} />
+                <span className="w-8 h-8 rounded-lg bg-[#EAF6FF] text-sky-deep flex items-center justify-center">
+                  <Icon as={Glyph} size="sm" />
                 </span>
                 {label}
                 {badge && (
@@ -42,7 +43,7 @@ export default function SettingsPage() {
                     {badge}
                   </span>
                 )}
-                <ChevronRight size={14} className="ml-auto text-ink-soft" />
+                <Icon as={ChevronRight} size="sm" className="ml-auto text-ink-soft" />
               </button>
             ))}
           </div>

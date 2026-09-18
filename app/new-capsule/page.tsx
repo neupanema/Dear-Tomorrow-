@@ -15,6 +15,7 @@ import ReviewSummary from "@/components/new-capsule/ReviewSummary";
 import SealAnimation from "@/components/new-capsule/SealAnimation";
 import { UnlockMethod } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
+import Icon from "@/components/ui/Icon";
 
 const TOTAL_STEPS = 4;
 
@@ -74,7 +75,7 @@ export default function NewCapsulePage() {
                 transition={{ type: "spring", stiffness: 380, damping: 14 }}
                 className="absolute bottom-6 right-2 w-11 h-11 rounded-full bg-white text-sky-deep flex items-center justify-center shadow-lg"
               >
-                <Check size={22} strokeWidth={3} />
+                <Icon as={Check} size="lg" strokeWidth={3} />
               </motion.div>
             )}
           </AnimatePresence>
@@ -240,7 +241,7 @@ export default function NewCapsulePage() {
           </p>
           <div className="w-56 rounded-[28px] bg-gradient-to-b from-sky to-sky-deep p-6 text-white text-center shadow-lg">
             <div className="w-16 h-16 rounded-full bg-white/15 border-2 border-white/40 flex items-center justify-center mx-auto mb-3">
-              <Lock size={22} />
+              <Icon as={Lock} size="lg" />
             </div>
             <p className="font-display text-sm mb-1">Sealed</p>
             <p className="text-[10px] opacity-90 leading-snug mb-3">

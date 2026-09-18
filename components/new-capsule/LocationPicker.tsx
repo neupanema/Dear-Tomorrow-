@@ -2,6 +2,7 @@
 
 import { Search } from "lucide-react";
 import { useState } from "react";
+import Icon from "@/components/ui/Icon";
 
 interface LocationPickerProps {
   onChange?: (point: { xPercent: number; yPercent: number }) => void;
@@ -31,7 +32,7 @@ export default function LocationPicker({ onChange }: LocationPickerProps) {
   return (
     <div>
       <div className="flex items-center gap-2 bg-white border border-line rounded-xl px-3 py-2.5 mb-2.5 text-ink-soft text-[11px]">
-        <Search size={14} />
+        <Icon as={Search} size="sm" />
         <span>Search for a place</span>
       </div>
 

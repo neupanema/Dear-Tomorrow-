@@ -1,8 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Bell } from "lucide-react";
+import { Lock, Mail } from "lucide-react";
 import Button from "@/components/ui/Button";
+import BrandMark from "@/components/ui/BrandMark";
+import Icon from "@/components/ui/Icon";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -19,8 +21,8 @@ export default function SignInPage() {
       {/* Desktop-only left half, mirrors the onboarding screen so the brand
           stays consistent across the sign-in step. */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-sky to-sky-deep flex-col items-center justify-center text-white text-center px-16">
-        <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center mb-6">
-          <Bell size={28} className="text-sky-deep" />
+        <div className="mb-6">
+          <BrandMark size="lg" tone="light" />
         </div>
         <h2 className="font-display text-3xl mb-3">Welcome back</h2>
         <p className="text-sm opacity-90 leading-relaxed max-w-xs">
@@ -38,18 +40,24 @@ export default function SignInPage() {
           </p>
 
           <form onSubmit={handleContinue} className="flex flex-col gap-2.5">
-            <input
-              type="email"
-              placeholder="Email address"
-              required
-              className="bg-cream border-2 border-line rounded-xl px-3 py-2.5 text-sm text-ink outline-none focus:border-sky"
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              required
-              className="bg-cream border-2 border-line rounded-xl px-3 py-2.5 text-sm text-ink outline-none focus:border-sky"
-            />
+            <div className="relative">
+              <Icon as={Mail} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-soft pointer-events-none" />
+              <input
+                type="email"
+                placeholder="Email address"
+                required
+                className="w-full bg-cream border-2 border-line rounded-xl pl-9 pr-3 py-2.5 text-sm text-ink outline-none focus:border-sky"
+              />
+            </div>
+            <div className="relative">
+              <Icon as={Lock} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-soft pointer-events-none" />
+              <input
+                type="password"
+                placeholder="Password"
+                required
+                className="w-full bg-cream border-2 border-line rounded-xl pl-9 pr-3 py-2.5 text-sm text-ink outline-none focus:border-sky"
+              />
+            </div>
             <div className="mt-2">
               <Button type="submit">Continue</Button>
             </div>

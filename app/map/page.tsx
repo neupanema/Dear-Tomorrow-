@@ -6,6 +6,7 @@ import AppShell from "@/components/layout/AppShell";
 import Chip from "@/components/ui/Chip";
 import { MOCK_CAPSULES } from "@/lib/mock-data";
 import { MapPin } from "lucide-react";
+import Icon from "@/components/ui/Icon";
 
 type Filter = "all" | "sealed" | "unlocked";
 
@@ -99,7 +100,7 @@ export default function MapPage() {
               {placeCapsules.map((capsule) => (
                 <div key={capsule.id} className="card flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-[#EAF6FF] text-sky-deep flex items-center justify-center flex-shrink-0">
-                    <MapPin size={15} />
+                    <Icon as={MapPin} size="sm" />
                   </div>
                   <div className="min-w-0">
                     <p className="font-bold text-xs text-ink truncate">{capsule.title}</p>

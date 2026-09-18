@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Map, Settings } from "lucide-react";
+import Icon from "@/components/ui/Icon";
 
 const TABS = [
   { href: "/dashboard", label: "Capsules", icon: Home },
@@ -15,7 +16,7 @@ export default function BottomNav() {
 
   return (
     <nav className="flex border-t border-line bg-white">
-      {TABS.map(({ href, label, icon: Icon }) => {
+      {TABS.map(({ href, label, icon: Glyph }) => {
         const active = pathname === href;
         return (
           <Link
@@ -25,7 +26,7 @@ export default function BottomNav() {
               active ? "text-sky-deep" : "text-ink-soft"
             }`}
           >
-            <Icon size={18} />
+            <Icon as={Glyph} size="md" />
             {label}
           </Link>
         );

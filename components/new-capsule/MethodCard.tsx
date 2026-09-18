@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { LucideIcon } from "lucide-react";
+import Icon from "@/components/ui/Icon";
 
 interface MethodCardProps {
   icon: LucideIcon;
@@ -14,7 +15,7 @@ interface MethodCardProps {
 }
 
 export default function MethodCard({
-  icon: Icon,
+  icon: Glyph,
   title,
   subtitle,
   active,
@@ -42,7 +43,7 @@ export default function MethodCard({
           active ? "bg-coral" : "bg-sky-deep"
         } ${disabled ? "!bg-gray-300" : ""}`}
       >
-        <Icon size={16} />
+        <Icon as={Glyph} size="sm" />
       </motion.div>
       <div>
         <p className="font-bold text-xs text-ink flex items-center gap-1.5">

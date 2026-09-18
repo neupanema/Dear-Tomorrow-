@@ -4,10 +4,11 @@ import { useCallback, useState } from "react";
 import Link from "next/link";
 import { notFound, useParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { Lock, ChevronLeft } from "lucide-react";
+import { ArrowRight, ChevronLeft, Lock } from "lucide-react";
 import UnlockOrb from "@/components/capsules/UnlockOrb";
 import { getCapsuleById } from "@/lib/mock-data";
 import { formatDate, daysAgo } from "@/lib/utils";
+import Icon from "@/components/ui/Icon";
 
 export default function CapsuleDetailPage() {
   // useParams (not the `params` prop) — in this Next version the prop is a
@@ -30,14 +31,14 @@ export default function CapsuleDetailPage() {
           className="absolute left-4 top-4 lg:left-8 lg:top-8 text-white"
           aria-label="Back to dashboard"
         >
-          <ChevronLeft size={20} />
+          <Icon as={ChevronLeft} size="md" />
         </Link>
         <motion.div
           animate={{ y: [0, -6, 0] }}
           transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
           className="w-[92px] h-[92px] lg:w-32 lg:h-32 rounded-full bg-white/15 border-2 border-white/40 flex items-center justify-center mb-4 lg:mb-6"
         >
-          <Lock size={32} className="lg:w-11 lg:h-11" />
+          <Icon as={Lock} size="xl" className="lg:w-10 lg:h-10" />
         </motion.div>
         <h2 className="font-display text-base lg:text-2xl mb-1.5">Sealed</h2>
         <p className="text-xs lg:text-sm opacity-90 leading-relaxed mb-4">
@@ -64,7 +65,7 @@ export default function CapsuleDetailPage() {
           className="absolute left-4 top-4 lg:left-8 lg:top-8 text-ink"
           aria-label="Back to dashboard"
         >
-          <ChevronLeft size={20} />
+          <Icon as={ChevronLeft} size="md" />
         </Link>
         <div className="mb-4 lg:mb-6">
           <UnlockOrb opening={opening} onOpen={handleOpen} onOpened={handleOpened} />
@@ -79,8 +80,9 @@ export default function CapsuleDetailPage() {
           <p className="text-xs lg:text-sm text-ink-soft leading-relaxed mb-4">
             Take a breath. This is you, {daysAgo(capsule.createdAt)} days ago.
           </p>
-          <p className="text-[10.5px] lg:text-xs font-bold text-sky-deep">
-            Tap to open →
+          <p className="inline-flex items-center gap-1 text-[10.5px] lg:text-xs font-bold text-sky-deep">
+            Tap to open
+            <Icon as={ArrowRight} size="sm" />
           </p>
         </motion.div>
       </div>
@@ -102,7 +104,7 @@ export default function CapsuleDetailPage() {
             className="absolute left-4 top-4 lg:left-8 lg:top-8 text-white"
             aria-label="Back to dashboard"
           >
-            <ChevronLeft size={20} />
+            <Icon as={ChevronLeft} size="md" />
           </Link>
           <motion.h1
             initial={{ opacity: 0, y: -12 }}

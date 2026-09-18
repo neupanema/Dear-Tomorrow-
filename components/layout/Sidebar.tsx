@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Home, Map, Settings, Plus } from "lucide-react";
+import { Home, Map, Settings, Plus } from "lucide-react";
+import BrandMark from "@/components/ui/BrandMark";
+import Icon from "@/components/ui/Icon";
 
 const NAV = [
   { href: "/dashboard", label: "Your capsules", icon: Home },
@@ -16,19 +18,17 @@ export default function Sidebar() {
   return (
     <aside className="hidden lg:flex lg:flex-col w-64 shrink-0 border-r border-line bg-white min-h-screen px-5 py-8">
       <div className="flex items-center gap-2.5 px-2 mb-10">
-        <div className="w-9 h-9 rounded-xl bg-sky-deep text-white flex items-center justify-center">
-          <Bell size={16} />
-        </div>
+        <BrandMark />
         <span className="font-display text-lg text-ink">Dear Tomorrow</span>
       </div>
 
       <Link href="/new-capsule" className="btn-primary w-full flex items-center justify-center gap-2 mb-8">
-        <Plus size={16} />
+        <Icon as={Plus} size="sm" />
         New capsule
       </Link>
 
       <nav className="flex flex-col gap-1">
-        {NAV.map(({ href, label, icon: Icon }) => {
+        {NAV.map(({ href, label, icon: Glyph }) => {
           const active = pathname === href;
           return (
             <Link
@@ -40,7 +40,7 @@ export default function Sidebar() {
                   : "text-ink-soft hover:bg-cream"
               }`}
             >
-              <Icon size={17} />
+              <Icon as={Glyph} size="md" />
               {label}
             </Link>
           );

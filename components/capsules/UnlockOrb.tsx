@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { LockOpen } from "lucide-react";
+import Icon from "@/components/ui/Icon";
 
 // Timeline for the opening moment (seconds).
 const SHAKE = 0.45; // orb trembles, crack draws across it
@@ -150,7 +151,7 @@ export default function UnlockOrb({ opening, onOpen, onOpened }: UnlockOrbProps)
           animate={opening ? { scale: [1, 1.25, 0], opacity: [1, 1, 0] } : { scale: 1, opacity: 1 }}
           transition={{ duration: 0.4, delay: 0.1 }}
         >
-          <LockOpen className="w-9 h-9 lg:w-11 lg:h-11" />
+          <Icon as={LockOpen} size="xl" className="lg:w-10 lg:h-10" />
         </motion.span>
       </motion.button>
     </div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import Icon from "@/components/ui/Icon";
 
 const DOW = ["S", "M", "T", "W", "T", "F", "S"];
 
@@ -42,7 +43,7 @@ export default function CapsuleCalendar({
     <div>
       <div className="flex items-center justify-between mb-2.5">
         <button onClick={() => changeMonth(-1)} aria-label="Previous month">
-          <ChevronLeft size={16} className="text-ink" />
+          <Icon as={ChevronLeft} size="sm" className="text-ink" />
         </button>
         <span className="font-bold text-xs text-ink">
           {viewDate.toLocaleDateString("en-US", {
@@ -51,7 +52,7 @@ export default function CapsuleCalendar({
           })}
         </span>
         <button onClick={() => changeMonth(1)} aria-label="Next month">
-          <ChevronRight size={16} className="text-ink" />
+          <Icon as={ChevronRight} size="sm" className="text-ink" />
         </button>
       </div>
 

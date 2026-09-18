@@ -10,13 +10,15 @@ import {
   useReducedMotion,
   type PanInfo,
 } from "framer-motion";
-import { ArrowLeft, ArrowRight, Bell, Calendar, Lock, MapPin } from "lucide-react";
+import { ArrowLeft, ArrowRight, Calendar, Lock, MapPin } from "lucide-react";
 import Button from "@/components/ui/Button";
 import {
   MeetIllustration,
   SealIllustration,
   WriteIllustration,
 } from "@/components/onboarding/Illustrations";
+import BrandMark from "@/components/ui/BrandMark";
+import Icon from "@/components/ui/Icon";
 
 const SLIDES = [
   {
@@ -106,13 +108,13 @@ export default function OnboardingPage() {
         <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-white/10" />
         <div className="absolute bottom-10 right-10 w-24 h-24 rounded-full bg-white/10" />
         <div className="absolute top-16 right-16 w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center rotate-6 text-white">
-          <Calendar size={22} />
+          <Icon as={Calendar} size="lg" />
         </div>
         <div className="absolute bottom-24 left-16 w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center -rotate-6 text-white">
-          <MapPin size={22} />
+          <Icon as={MapPin} size="lg" />
         </div>
         <div className="absolute bottom-16 right-24 w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center rotate-12 text-white">
-          <Lock size={18} />
+          <Icon as={Lock} size="md" />
         </div>
       </div>
       <div aria-hidden className="hidden lg:block absolute inset-y-0 right-0 w-1/2 bg-white" />
@@ -121,9 +123,7 @@ export default function OnboardingPage() {
         {/* Illustration cell */}
         <div className="flex-1 flex flex-col items-center px-8 pt-6 lg:pt-8 lg:justify-center lg:text-white">
           <div className="self-start flex items-center gap-2 lg:absolute lg:top-8 lg:left-10">
-            <span className="w-8 h-8 rounded-xl bg-white text-sky-deep flex items-center justify-center">
-              <Bell size={16} />
-            </span>
+            <BrandMark tone="light" />
             <span className="font-display text-base text-white">Dear Tomorrow</span>
           </div>
 
@@ -255,7 +255,7 @@ function ArrowButton({
   disabled: boolean;
   onClick: () => void;
 }) {
-  const Icon = direction === "prev" ? ArrowLeft : ArrowRight;
+  const Glyph = direction === "prev" ? ArrowLeft : ArrowRight;
   return (
     <button
       type="button"
@@ -264,7 +264,7 @@ function ArrowButton({
       aria-label={direction === "prev" ? "Previous slide" : "Next slide"}
       className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 text-white hover:bg-white/30 lg:bg-[#EAF6FF] lg:text-sky-deep lg:hover:bg-[#D8EBFB] transition-colors disabled:opacity-30 disabled:pointer-events-none"
     >
-      <Icon size={18} />
+      <Icon as={Glyph} size="md" />
     </button>
   );
 }

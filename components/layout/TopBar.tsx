@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
+import Icon from "@/components/ui/Icon";
 
 interface TopBarProps {
   title: string;
@@ -32,7 +33,7 @@ export default function TopBar({
           className={`absolute left-4 top-4 lg:left-10 lg:top-10 ${isBrand ? "text-white" : "text-ink"}`}
           aria-label="Go back"
         >
-          <ChevronLeft size={20} />
+          <Icon as={ChevronLeft} size="md" />
         </Link>
       )}
       <h1

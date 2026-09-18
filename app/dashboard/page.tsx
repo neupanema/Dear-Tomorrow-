@@ -10,6 +10,7 @@ import Button from "@/components/ui/Button";
 import Chip from "@/components/ui/Chip";
 import { MOCK_CAPSULES } from "@/lib/mock-data";
 import { Plus } from "lucide-react";
+import Icon from "@/components/ui/Icon";
 
 type Filter = "all" | "sealed" | "unlocked";
 
@@ -53,7 +54,7 @@ export default function DashboardPage() {
               lives in the sidebar, and again here for convenience. */}
           <div className="hidden lg:block">
             <Button href="/new-capsule" className="!w-auto !inline-flex items-center gap-1.5 !py-2.5 !px-4">
-              <Plus size={15} />
+              <Icon as={Plus} size="sm" />
               New capsule
             </Button>
           </div>
