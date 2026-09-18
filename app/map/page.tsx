@@ -33,7 +33,11 @@ function MapArea({
   overlay?: React.ReactNode;
 }) {
   return (
-    <div className={`relative ${heightClass} rounded-2xl overflow-hidden bg-map-land`}>
+    <div
+      role="group"
+      aria-label="Map of place capsules"
+      className={`relative ${heightClass} rounded-2xl overflow-hidden bg-map-land`}
+    >
       <div className="absolute left-0 right-0 top-[30%] h-2.5 bg-map-road" />
       <div className="absolute left-0 right-0 top-[65%] h-2.5 bg-map-road" />
       <div className="absolute top-0 bottom-0 left-[25%] w-2.5 bg-map-road" />
@@ -49,7 +53,8 @@ function MapArea({
         return (
           <div
             key={capsule.id}
-            title={capsule.title}
+            role="img"
+            aria-label={`${capsule.title}, ${capsule.unlockLocation?.label}`}
             className={`absolute w-6 h-6 rounded-tl-full rounded-tr-full rounded-bl-full ${pos.color}`}
             style={{
               left: pos.left,
@@ -108,7 +113,7 @@ export default function MapPage() {
 
       <div className="flex-1 p-4 pb-24 lg:px-10 lg:py-8 lg:pb-16">
         {hasPlaceCapsules && (
-          <div className="flex gap-2 mb-3 lg:mb-6">
+          <div role="group" aria-label="Filter places" className="flex gap-2 mb-3 lg:mb-6">
             <Chip label="All" active={filter === "all"} onClick={() => setFilter("all")} />
             <Chip
               label="Sealed"

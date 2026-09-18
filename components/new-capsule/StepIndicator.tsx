@@ -6,7 +6,15 @@ export default function StepIndicator({
   total: number;
 }) {
   return (
-    <div className="flex gap-2 justify-center mb-4">
+    <div
+      role="progressbar"
+      aria-label="Capsule creation progress"
+      aria-valuemin={1}
+      aria-valuemax={total}
+      aria-valuenow={step}
+      aria-valuetext={`Step ${step} of ${total}`}
+      className="flex gap-2 justify-center mb-4"
+    >
       {Array.from({ length: total }).map((_, i) => (
         <div
           key={i}

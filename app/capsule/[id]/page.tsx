@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { notFound, useParams } from "next/navigation";
 import { motion } from "framer-motion";
@@ -20,15 +20,22 @@ export default function CapsuleDetailPage() {
   const handleOpen = useCallback(() => setPhase("opening"), []);
   const handleOpened = useCallback(() => setPhase("revealed"), []);
 
+  // The tapped button disappears when the message is revealed, so hand focus
+  // to the new heading rather than dropping keyboard/screen-reader users on <body>.
+  const revealedHeading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (phase === "revealed") revealedHeading.current?.focus();
+  }, [phase]);
+
   if (!capsule) return notFound();
 
   // --- sealed: nothing to tap, it opens itself when the condition is met ---
   if (capsule.status === "sealed") {
     return (
-      <div className="min-h-screen bg-gradient-to-b lg:bg-gradient-to-br from-hero-top to-hero-bottom flex flex-col items-center justify-center text-white text-center px-8 relative">
+      <main data-on-sky="" className="min-h-screen bg-gradient-to-b lg:bg-gradient-to-br from-hero-top to-hero-bottom flex flex-col items-center justify-center text-white text-center px-8 relative">
         <Link
           href="/dashboard"
-          className="absolute left-4 top-4 lg:left-8 lg:top-8 text-white"
+          className="absolute left-2 top-2 lg:left-6 lg:top-6 p-2 rounded-full text-white"
           aria-label="Back to dashboard"
         >
           <Icon as={ChevronLeft} size="md" />
@@ -40,7 +47,7 @@ export default function CapsuleDetailPage() {
         >
           <Icon as={Lock} size="xl" className="lg:w-10 lg:h-10" />
         </motion.div>
-        <h2 className="font-display text-heading lg:text-title mb-2">Sealed</h2>
+        <h1 className="font-display text-heading lg:text-title mb-2">Sealed</h1>
         <p className="text-body lg:text-lead opacity-90 mb-4">
           Something from your past
           <br />
@@ -51,7 +58,7 @@ export default function CapsuleDetailPage() {
             ? `Opens when I return to ${capsule.unlockLocation?.label}`
             : `Opens ${capsule.unlockDate ? formatDate(capsule.unlockDate) : ""}`}
         </div>
-      </div>
+      </main>
     );
   }
 
@@ -59,14 +66,17 @@ export default function CapsuleDetailPage() {
   if (phase !== "revealed") {
     const opening = phase === "opening";
     return (
-      <div className="min-h-screen bg-cream flex flex-col items-center justify-center text-center px-8 relative overflow-hidden">
+      <main className="min-h-screen bg-cream flex flex-col items-center justify-center text-center px-8 relative overflow-hidden">
         <Link
           href="/dashboard"
-          className="absolute left-4 top-4 lg:left-8 lg:top-8 text-ink"
+          className="absolute left-2 top-2 lg:left-6 lg:top-6 p-2 rounded-full text-ink"
           aria-label="Back to dashboard"
         >
           <Icon as={ChevronLeft} size="md" />
         </Link>
+        <p role="status" className="sr-only">
+          {opening ? "Opening your capsule..." : ""}
+        </p>
         <div className="mb-4 lg:mb-6">
           <UnlockOrb opening={opening} onOpen={handleOpen} onOpened={handleOpened} />
         </div>
@@ -74,9 +84,9 @@ export default function CapsuleDetailPage() {
           animate={{ opacity: opening ? 0 : 1, y: opening ? 8 : 0 }}
           transition={{ duration: 0.25 }}
         >
-          <h2 className="font-display text-heading lg:text-title text-ink mb-2">
+          <h1 className="font-display text-heading lg:text-title text-ink mb-2">
             Ready to open
-          </h2>
+          </h1>
           <p className="text-body lg:text-lead text-ink-soft mb-4">
             Take a breath. This is you, {daysAgo(capsule.createdAt)} days ago.
           </p>
@@ -85,32 +95,34 @@ export default function CapsuleDetailPage() {
             <Icon as={ArrowRight} size="sm" />
           </p>
         </motion.div>
-      </div>
+      </main>
     );
   }
 
   // --- unlocked and revealed: the actual message ---
   return (
-    <motion.div
+    <motion.main
       initial={{ opacity: 0, scale: 0.97 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.45, ease: "easeOut" }}
       className="min-h-screen bg-cream flex flex-col items-center lg:justify-center"
     >
       <div className="w-full lg:max-w-lg lg:rounded-3xl lg:overflow-hidden lg:shadow-xl">
-        <div className="bg-sky px-4 pt-4 pb-4 lg:px-8 lg:pt-8 lg:pb-6 relative">
+        <div data-on-sky="" className="bg-sky px-4 pt-4 pb-4 lg:px-8 lg:pt-8 lg:pb-6 relative">
           <Link
             href="/dashboard"
-            className="absolute left-4 top-4 lg:left-8 lg:top-8 text-white"
+            className="absolute left-2 top-2 lg:left-6 lg:top-6 p-2 rounded-full text-white"
             aria-label="Back to dashboard"
           >
             <Icon as={ChevronLeft} size="md" />
           </Link>
           <motion.h1
+            ref={revealedHeading}
+            tabIndex={-1}
             initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15, duration: 0.4 }}
-            className="font-display text-white text-heading lg:text-title text-center"
+            className="font-display text-white text-heading lg:text-title text-center outline-none"
           >
             Your past has
             <br />
@@ -144,6 +156,6 @@ export default function CapsuleDetailPage() {
           </motion.p>
         </div>
       </div>
-    </motion.div>
+    </motion.main>
   );
 }

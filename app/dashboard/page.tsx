@@ -45,7 +45,7 @@ export default function DashboardPage() {
       <div className="flex-1 p-4 pb-24 lg:px-10 lg:py-8 lg:pb-16">
         {hasCapsules && (
           <div className="flex items-center justify-between mb-3 lg:mb-6">
-            <div className="flex gap-2">
+            <div role="group" aria-label="Filter capsules" className="flex gap-2">
               <Chip label="All" active={filter === "all"} onClick={() => setFilter("all")} />
               <Chip
                 label="Sealed"

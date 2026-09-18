@@ -178,7 +178,7 @@ export default function OnboardingPage() {
           {/* dots + arrows */}
           <div className="flex items-center gap-4 mt-4 lg:mt-8">
             <ArrowButton direction="prev" disabled={index === 0} onClick={prev} />
-            <div role="group" aria-label="Choose a slide" className="flex items-center gap-2">
+            <div role="group" aria-label="Choose a slide" className="flex items-center">
               {SLIDES.map((s, i) => (
                 <button
                   key={s.title}
@@ -186,7 +186,7 @@ export default function OnboardingPage() {
                   onClick={() => goTo(i)}
                   aria-label={`Go to slide ${i + 1}: ${s.title}`}
                   aria-current={i === index ? "step" : undefined}
-                  className="p-2 -m-2 group"
+                  className="p-2 group"
                 >
                   <span
                     className={`block h-2 rounded-full transition-all duration-300 ${

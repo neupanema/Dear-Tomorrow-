@@ -37,13 +37,13 @@ export default function SignInPage() {
         <div className="mb-6">
           <BrandMark size="lg" tone="light" />
         </div>
-        <h2 className="font-display text-display mb-3">Welcome back</h2>
+        <p className="font-display text-display mb-3">Welcome back</p>
         <p className="text-lead opacity-90 max-w-xs">
           Sign in to see what your past self left for you.
         </p>
       </div>
 
-      <div className="min-h-screen lg:min-h-0 lg:w-1/2 bg-surface flex flex-col justify-center px-6 lg:px-20">
+      <main className="min-h-screen lg:min-h-0 lg:w-1/2 bg-surface flex flex-col justify-center px-6 lg:px-20">
         <div className="w-full max-w-sm mx-auto">
           <h1 className="font-display text-heading lg:text-title text-ink mb-1">
             Create your account
@@ -56,20 +56,28 @@ export default function SignInPage() {
             <fieldset disabled={pending !== null} className="contents">
               <div className="relative">
                 <Icon as={Mail} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-soft pointer-events-none" />
+                <label htmlFor="email" className="sr-only">Email address</label>
                 <input
+                  id="email"
+                  name="email"
+                  autoComplete="email"
                   type="email"
                   placeholder="Email address"
                   required
-                  className="w-full bg-cream border-2 border-line rounded-xl pl-9 pr-3 py-3 text-lead text-ink outline-none focus:border-accent"
+                  className="w-full bg-cream border-2 border-line rounded-xl pl-9 pr-3 py-3 text-lead text-ink focus:border-accent"
                 />
               </div>
               <div className="relative">
                 <Icon as={Lock} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-soft pointer-events-none" />
+                <label htmlFor="password" className="sr-only">Password</label>
                 <input
+                  id="password"
+                  name="password"
+                  autoComplete="new-password"
                   type="password"
                   placeholder="Password"
                   required
-                  className="w-full bg-cream border-2 border-line rounded-xl pl-9 pr-3 py-3 text-lead text-ink outline-none focus:border-accent"
+                  className="w-full bg-cream border-2 border-line rounded-xl pl-9 pr-3 py-3 text-lead text-ink focus:border-accent"
                 />
               </div>
               <div className="mt-2">
@@ -97,7 +105,7 @@ export default function SignInPage() {
             {pending === "google" ? "Connecting..." : "Continue with Google"}
           </Button>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

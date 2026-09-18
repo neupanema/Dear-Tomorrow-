@@ -28,13 +28,14 @@ export default function Sidebar() {
         New capsule
       </Link>
 
-      <nav className="flex flex-col gap-1">
+      <nav aria-label="Main" className="flex flex-col gap-1">
         {NAV.map(({ href, label, icon: Glyph }) => {
           const active = pathname === href;
           return (
             <Link
               key={href}
               href={href}
+              aria-current={active ? "page" : undefined}
               className={`flex items-center gap-3 px-3 py-3 rounded-xl text-body font-bold transition-colors ${
                 active
                   ? "bg-tint text-accent"

@@ -15,13 +15,14 @@ export default function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex border-t border-line bg-surface">
+    <nav aria-label="Main" className="flex border-t border-line bg-surface">
       {TABS.map(({ href, label, icon: Glyph }) => {
         const active = pathname === href;
         return (
           <Link
             key={href}
             href={href}
+            aria-current={active ? "page" : undefined}
             className={`flex-1 flex flex-col items-center gap-1 py-3 text-micro font-bold ${
               active ? "text-accent" : "text-ink-soft"
             }`}

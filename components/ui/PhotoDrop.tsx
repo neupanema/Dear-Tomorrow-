@@ -72,20 +72,26 @@ export default function PhotoDrop({ onChange }: PhotoDropProps) {
   }
 
   return (
-    <button
-      type="button"
-      onClick={() => inputRef.current?.click()}
-      className="w-full h-16 rounded-2xl border-2 border-dashed border-accent flex flex-col items-center justify-center gap-1 text-accent text-body font-bold bg-[repeating-linear-gradient(45deg,rgb(var(--tint))_0,rgb(var(--tint))_8px,rgb(var(--surface))_8px,rgb(var(--surface))_16px)]"
-    >
-      <Icon as={Camera} size="md" />
-      <span>Tap to add a photo</span>
+    <>
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        className="w-full h-16 rounded-2xl border-2 border-dashed border-accent flex flex-col items-center justify-center gap-1 text-accent text-body font-bold bg-[repeating-linear-gradient(45deg,rgb(var(--tint))_0,rgb(var(--tint))_8px,rgb(var(--surface))_8px,rgb(var(--surface))_16px)]"
+      >
+        <Icon as={Camera} size="md" />
+        <span>Tap to add a photo</span>
+      </button>
+      {/* Sibling, not a child: an <input> inside a <button> is invalid HTML.
+          It stays hidden; the button above opens it. */}
       <input
         ref={inputRef}
         type="file"
         accept="image/*"
         className="hidden"
+        tabIndex={-1}
+        aria-hidden="true"
         onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
       />
-    </button>
+    </>
   );
 }

@@ -26,7 +26,9 @@ export default function MethodCard({
   return (
     <motion.button
       type="button"
-      onClick={disabled ? undefined : onClick}
+      onClick={onClick}
+      disabled={disabled}
+      aria-pressed={disabled ? undefined : !!active}
       whileHover={disabled ? undefined : { y: -2 }}
       whileTap={disabled ? undefined : { scale: 0.98 }}
       transition={{ type: "spring", stiffness: 400, damping: 28 }}

@@ -78,7 +78,7 @@ export default function NewCapsulePage() {
   if (phase !== "editing") {
     const done = phase === "sealed";
     return (
-      <div className="min-h-screen bg-gradient-to-b lg:bg-gradient-to-br from-hero-top to-hero-bottom flex flex-col items-center justify-center text-white text-center px-8">
+      <main data-on-sky="" className="min-h-screen bg-gradient-to-b lg:bg-gradient-to-br from-hero-top to-hero-bottom flex flex-col items-center justify-center text-white text-center px-8">
         <div className="relative mb-2">
           <SealAnimation onComplete={handleSealed} className="w-48 h-52 lg:w-56 lg:h-60" />
           <AnimatePresence>
@@ -105,7 +105,7 @@ export default function NewCapsulePage() {
                 transition={{ duration: 0.3 }}
                 className="flex flex-col items-center"
               >
-                <h2 className="font-display text-heading lg:text-title mb-2">Capsule sealed</h2>
+                <h1 className="font-display text-heading lg:text-title mb-2">Capsule sealed</h1>
                 <p className="text-body lg:text-lead opacity-90 mb-5 max-w-[190px] lg:max-w-xs">
                   We&apos;ll let you know the moment it&apos;s ready to open.
                 </p>
@@ -116,22 +116,22 @@ export default function NewCapsulePage() {
                 </div>
               </motion.div>
             ) : (
-              <motion.h2
+              <motion.h1
                 key="sealing"
                 exit={{ opacity: 0 }}
                 className="font-display text-heading lg:text-title"
               >
                 Sealing your capsule...
-              </motion.h2>
+              </motion.h1>
             )}
           </AnimatePresence>
         </div>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="min-h-screen lg:flex lg:items-center lg:justify-center lg:bg-cream lg:p-10">
+    <main className="min-h-screen lg:flex lg:items-center lg:justify-center lg:bg-cream lg:p-10">
       <div className="bg-surface flex flex-col min-h-screen lg:min-h-0 lg:flex-row lg:max-w-4xl lg:w-full lg:rounded-3xl lg:overflow-hidden lg:shadow-2xl">
         <div className="flex-1 flex flex-col">
           <TopBar
@@ -152,6 +152,10 @@ export default function NewCapsulePage() {
 
           <div className="flex-1 p-4 lg:p-8">
             <StepIndicator step={step} total={TOTAL_STEPS} />
+            {/* Announces the step to screen readers when Next/Back is pressed. */}
+            <p className="sr-only" aria-live="polite">
+              Step {step} of {TOTAL_STEPS}
+            </p>
 
             <motion.div
               key={step}
@@ -170,15 +174,15 @@ export default function NewCapsulePage() {
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="Dear future me, I hope you didn't give up on..."
                     rows={4}
-                    className="w-full bg-surface border-2 border-dashed border-line-strong rounded-2xl p-3 text-lead text-ink outline-none resize-none"
+                    className="w-full bg-surface border-2 border-dashed border-line-strong rounded-2xl p-3 text-lead text-ink resize-none focus:border-accent"
                   />
-                  <label className="field-label">Photo</label>
+                  <p className="field-label">Photo</p>
                   <PhotoDrop onChange={setPhoto} />
                 </div>
               )}
 
               {step === 2 && (
-                <div>
+                <div role="group" aria-label="How should it unlock?">
                   <MethodCard
                     icon={Calendar}
                     title="On a date"
@@ -277,6 +281,6 @@ export default function NewCapsulePage() {
           )}
         </div>
       </div>
-    </div>
+    </main>
   );
 }

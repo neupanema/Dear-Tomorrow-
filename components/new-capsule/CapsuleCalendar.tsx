@@ -42,23 +42,23 @@ export default function CapsuleCalendar({
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <button onClick={() => changeMonth(-1)} aria-label="Previous month">
+        <button type="button" onClick={() => changeMonth(-1)} aria-label="Previous month" className="p-2 -m-2 rounded-full">
           <Icon as={ChevronLeft} size="sm" className="text-ink" />
         </button>
-        <span className="font-bold text-body text-ink">
+        <span aria-live="polite" className="font-bold text-body text-ink">
           {viewDate.toLocaleDateString("en-US", {
             month: "long",
             year: "numeric",
           })}
         </span>
-        <button onClick={() => changeMonth(1)} aria-label="Next month">
+        <button type="button" onClick={() => changeMonth(1)} aria-label="Next month" className="p-2 -m-2 rounded-full">
           <Icon as={ChevronRight} size="sm" className="text-ink" />
         </button>
       </div>
 
       <div className="grid grid-cols-7 gap-1 text-center">
         {DOW.map((d, i) => (
-          <div key={i} className="text-micro font-bold text-ink-soft pb-1">
+          <div key={i} aria-hidden="true" className="text-micro font-bold text-ink-soft pb-1">
             {d}
           </div>
         ))}
@@ -68,7 +68,15 @@ export default function CapsuleCalendar({
           ) : (
             <button
               key={i}
+              type="button"
               onClick={() => onChange(new Date(year, month, day))}
+              aria-label={new Date(year, month, day).toLocaleDateString("en-US", {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+              })}
+              aria-pressed={isSelected(day)}
               className={`text-body py-2 rounded-lg ${
                 isSelected(day)
                   ? "bg-coral text-white font-bold"
