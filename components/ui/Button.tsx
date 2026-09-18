@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { motion, type HTMLMotionProps } from "framer-motion";
+import { Loader2 } from "lucide-react";
+import Icon from "./Icon";
 
 type Variant = "primary" | "secondary" | "white";
 
@@ -17,6 +19,8 @@ const MotionLink = motion.create(Link);
 
 interface BaseProps {
   variant?: Variant;
+  /** Shows a spinner and blocks clicks while an async action runs. */
+  loading?: boolean;
   children: React.ReactNode;
   className?: string;
 }
@@ -37,10 +41,14 @@ export default function Button({
   href,
   children,
   className = "",
+  loading = false,
+  disabled,
   ...rest
 }: ButtonProps) {
+  const inactive = loading || disabled;
   const classes = `font-display text-sm text-center py-3 px-4 rounded-2xl w-full
-    transition-colors ${variantClasses[variant]} ${className}`;
+    transition-colors ${variantClasses[variant]} ${className}
+    disabled:opacity-60 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:brightness-100`;
 
   if (href) {
     return (
@@ -51,7 +59,14 @@ export default function Button({
   }
 
   return (
-    <motion.button className={classes} {...press} {...rest}>
+    <motion.button
+      className={`${classes} ${loading ? "!inline-flex items-center justify-center gap-2" : ""}`}
+      {...(inactive ? {} : press)}
+      disabled={inactive}
+      aria-busy={loading || undefined}
+      {...rest}
+    >
+      {loading && <Icon as={Loader2} className="animate-spin" />}
       {children}
     </motion.button>
   );

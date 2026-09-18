@@ -14,13 +14,16 @@ import LocationPicker from "@/components/new-capsule/LocationPicker";
 import ReviewSummary from "@/components/new-capsule/ReviewSummary";
 import SealAnimation from "@/components/new-capsule/SealAnimation";
 import { UnlockMethod } from "@/lib/types";
-import { formatDate } from "@/lib/utils";
+import { useToast } from "@/components/ui/Toast";
+import { formatDate, wait } from "@/lib/utils";
 import Icon from "@/components/ui/Icon";
 
 const TOTAL_STEPS = 4;
 
 export default function NewCapsulePage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const [saving, setSaving] = useState(false); // request in flight, before the animation
   const [step, setStep] = useState(1);
   const [stepDir, setStepDir] = useState(1); // which way the step content slides in
   // editing -> sealing (capsule closing animation) -> sealed (confirmation)
@@ -51,10 +54,21 @@ export default function NewCapsulePage() {
     setStep((s) => Math.max(s - 1, 1));
   }
 
-  function handleSeal() {
+  async function handleSeal() {
+    if (saving) return;
+    setSaving(true);
     // TODO: replace with a real POST /capsules call once the backend exists,
     // uploading `photo` to storage and saving message/method/date/location.
+    // The wait() only stands in for that request's latency.
+    await wait(600);
     setPhase("sealing");
+  }
+
+  function backToDashboard() {
+    // Fired here (not on the confirmation screen) so the toast is what you
+    // see when you land back on the dashboard.
+    toast("Capsule sealed");
+    router.push("/dashboard");
   }
 
   const handleSealed = useCallback(() => setPhase("sealed"), []);
@@ -96,7 +110,7 @@ export default function NewCapsulePage() {
                   We&apos;ll let you know the moment it&apos;s ready to open.
                 </p>
                 <div className="w-full min-w-[200px]">
-                  <Button variant="white" onClick={() => router.push("/dashboard")}>
+                  <Button variant="white" onClick={backToDashboard}>
                     Back to dashboard
                   </Button>
                 </div>
@@ -220,12 +234,16 @@ export default function NewCapsulePage() {
             {step < TOTAL_STEPS ? (
               <Button onClick={next}>Next</Button>
             ) : (
-              <Button onClick={handleSeal}>Seal it</Button>
+              <Button onClick={handleSeal} loading={saving}>
+                {saving ? "Sealing..." : "Seal it"}
+              </Button>
             )}
             {step > 1 && (
               <button
+                type="button"
                 onClick={back}
-                className="w-full text-center text-xs text-ink-soft font-bold mt-2 py-1"
+                disabled={saving}
+                className="w-full text-center text-xs text-ink-soft font-bold mt-2 py-1 disabled:opacity-40"
               >
                 Back
               </button>

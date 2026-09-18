@@ -1,6 +1,9 @@
+"use client";
+
 import { Bell, Lock, MapPin, Settings as SettingsIcon, Video, ChevronRight } from "lucide-react";
 import TopBar from "@/components/layout/TopBar";
 import AppShell from "@/components/layout/AppShell";
+import { useToast } from "@/components/ui/Toast";
 import Icon from "@/components/ui/Icon";
 
 const ITEMS = [
@@ -12,6 +15,8 @@ const ITEMS = [
 ];
 
 export default function SettingsPage() {
+  const { toast } = useToast();
+
   return (
     <AppShell>
       <TopBar title="Settings" variant="plain" />
@@ -32,6 +37,9 @@ export default function SettingsPage() {
             {ITEMS.map(({ icon: Glyph, label, badge }) => (
               <button
                 key={label}
+                type="button"
+                // TODO: each of these opens a real settings screen later
+                onClick={() => toast("This setting isn't available yet", { variant: "info" })}
                 className="w-full bg-white border border-line rounded-xl px-3 py-2.5 lg:py-4 mb-2 lg:mb-0 flex items-center gap-2.5 text-xs text-ink"
               >
                 <span className="w-8 h-8 rounded-lg bg-[#EAF6FF] text-sky-deep flex items-center justify-center">

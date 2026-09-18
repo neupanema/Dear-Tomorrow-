@@ -35,3 +35,11 @@ export function distanceKm(
 
   return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
 }
+
+/**
+ * Stand-in for network latency while there's no backend. Replace calls to
+ * this with the real request when the API exists.
+ */
+export function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
