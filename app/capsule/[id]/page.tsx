@@ -32,7 +32,7 @@ export default function CapsuleDetailPage() {
   // --- sealed: nothing to tap, it opens itself when the condition is met ---
   if (capsule.status === "sealed") {
     return (
-      <main data-on-sky="" className="min-h-screen bg-gradient-to-b lg:bg-gradient-to-br from-hero-top to-hero-bottom flex flex-col items-center justify-center text-white text-center px-8 relative">
+      <main data-on-sky="" className="min-h-screen bg-hero flex flex-col items-center justify-center text-white text-center px-8 relative">
         <Link
           href="/dashboard"
           className="absolute left-2 top-2 lg:left-6 lg:top-6 p-2 rounded-full text-white"
@@ -48,12 +48,12 @@ export default function CapsuleDetailPage() {
           <Icon as={Lock} size="xl" className="lg:w-10 lg:h-10" />
         </motion.div>
         <h1 className="font-display text-heading lg:text-title mb-2">Sealed</h1>
-        <p className="text-body lg:text-lead opacity-90 mb-4">
+        <p className="text-body lg:text-lead mb-4">
           Something from your past
           <br />
           is waiting for you.
         </p>
-        <div className="bg-white/20 px-4 py-2 rounded-full text-caption lg:text-body font-bold">
+        <div className="bg-black/20 px-4 py-2 rounded-full text-caption lg:text-body font-bold">
           {capsule.unlockMethod === "place"
             ? `Opens when I return to ${capsule.unlockLocation?.label}`
             : `Opens ${capsule.unlockDate ? formatDate(capsule.unlockDate) : ""}`}
@@ -108,10 +108,10 @@ export default function CapsuleDetailPage() {
       className="min-h-screen bg-cream flex flex-col items-center lg:justify-center"
     >
       <div className="w-full lg:max-w-lg lg:rounded-3xl lg:overflow-hidden lg:shadow-xl">
-        <div data-on-sky="" className="bg-sky px-4 pt-4 pb-4 lg:px-8 lg:pt-8 lg:pb-6 relative">
+        <div data-focus="ink" className="bg-sky px-4 pt-4 pb-4 lg:px-8 lg:pt-8 lg:pb-6 relative">
           <Link
             href="/dashboard"
-            className="absolute left-2 top-2 lg:left-6 lg:top-6 p-2 rounded-full text-white"
+            className="absolute left-2 top-2 lg:left-6 lg:top-6 p-2 rounded-full text-ink"
             aria-label="Back to dashboard"
           >
             <Icon as={ChevronLeft} size="md" />
@@ -122,7 +122,7 @@ export default function CapsuleDetailPage() {
             initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15, duration: 0.4 }}
-            className="font-display text-white text-heading lg:text-title text-center outline-none"
+            className="font-display text-ink text-heading lg:text-title text-center outline-none"
           >
             Your past has
             <br />

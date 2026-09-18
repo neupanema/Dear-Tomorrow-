@@ -101,10 +101,10 @@ export default function OnboardingPage() {
       style={{ touchAction: "pan-y" }}
       aria-roledescription="carousel"
       aria-label="Welcome to Dear Tomorrow"
-      className="relative min-h-screen overflow-hidden select-none bg-gradient-to-b lg:bg-none from-hero-top to-hero-bottom text-white lg:text-ink"
+      className="relative min-h-screen overflow-hidden select-none bg-hero lg:bg-none text-white lg:text-ink"
     >
       {/* Desktop: static split background so only the content animates. */}
-      <div aria-hidden className="hidden lg:block absolute inset-y-0 left-0 w-1/2 bg-gradient-to-br from-hero-top to-hero-bottom overflow-hidden">
+      <div aria-hidden className="hidden lg:block absolute inset-y-0 left-0 w-1/2 bg-hero overflow-hidden">
         <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-white/10" />
         <div className="absolute bottom-10 right-10 w-24 h-24 rounded-full bg-white/10" />
         <div className="absolute top-16 right-16 w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center rotate-6 text-white">
@@ -161,13 +161,13 @@ export default function OnboardingPage() {
                 transition={transition}
               >
                 <motion.div style={{ x: dragX }}>
-                  <p className="text-caption font-bold uppercase tracking-wide opacity-90 lg:opacity-100 lg:text-accent mb-2">
+                  <p className="text-caption font-bold uppercase tracking-wide lg:text-accent mb-2">
                     Step {index + 1} of {SLIDES.length}
                   </p>
                   <h1 className="font-display text-title lg:text-display mb-2 lg:mb-4">
                     {slide.title}
                   </h1>
-                  <p className="text-lead opacity-90 lg:opacity-100 lg:text-ink-soft mx-auto lg:mx-0 max-w-[300px] lg:max-w-md">
+                  <p className="text-lead lg:text-ink-soft mx-auto lg:mx-0 max-w-[300px] lg:max-w-md">
                     {slide.body}
                   </p>
                 </motion.div>
@@ -232,7 +232,7 @@ export default function OnboardingPage() {
                 >
                   <Link
                     href="/sign-in"
-                    className="inline-block text-body font-bold underline underline-offset-4 opacity-90 lg:opacity-100 lg:text-ink-soft hover:opacity-100 py-3 px-2"
+                    className="inline-block text-body font-bold underline underline-offset-4 lg:text-ink-soft py-3 px-2"
                   >
                     Skip
                   </Link>

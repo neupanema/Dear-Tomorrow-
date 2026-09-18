@@ -33,15 +33,15 @@ export default function SignInPage() {
     <div className="min-h-screen lg:flex">
       {/* Desktop-only left half, mirrors the onboarding screen so the brand
           stays consistent across the sign-in step. */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-hero-top to-hero-bottom flex-col items-center justify-center text-white text-center px-16">
+      <aside className="hidden lg:flex lg:w-1/2 bg-hero flex-col items-center justify-center text-white text-center px-16">
         <div className="mb-6">
           <BrandMark size="lg" tone="light" />
         </div>
         <p className="font-display text-display mb-3">Welcome back</p>
-        <p className="text-lead opacity-90 max-w-xs">
+        <p className="text-lead max-w-xs">
           Sign in to see what your past self left for you.
         </p>
-      </div>
+      </aside>
 
       <main className="min-h-screen lg:min-h-0 lg:w-1/2 bg-surface flex flex-col justify-center px-6 lg:px-20">
         <div className="w-full max-w-sm mx-auto">

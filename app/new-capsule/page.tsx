@@ -78,7 +78,7 @@ export default function NewCapsulePage() {
   if (phase !== "editing") {
     const done = phase === "sealed";
     return (
-      <main data-on-sky="" className="min-h-screen bg-gradient-to-b lg:bg-gradient-to-br from-hero-top to-hero-bottom flex flex-col items-center justify-center text-white text-center px-8">
+      <main data-on-sky="" className="min-h-screen bg-hero flex flex-col items-center justify-center text-white text-center px-8">
         <div className="relative mb-2">
           <SealAnimation onComplete={handleSealed} className="w-48 h-52 lg:w-56 lg:h-60" />
           <AnimatePresence>
@@ -106,7 +106,7 @@ export default function NewCapsulePage() {
                 className="flex flex-col items-center"
               >
                 <h1 className="font-display text-heading lg:text-title mb-2">Capsule sealed</h1>
-                <p className="text-body lg:text-lead opacity-90 mb-5 max-w-[190px] lg:max-w-xs">
+                <p className="text-body lg:text-lead mb-5 max-w-[190px] lg:max-w-xs">
                   We&apos;ll let you know the moment it&apos;s ready to open.
                 </p>
                 <div className="w-full min-w-[200px]">
@@ -261,15 +261,15 @@ export default function NewCapsulePage() {
           <p className="text-caption font-bold text-ink-soft uppercase tracking-wide mb-5">
             Live preview
           </p>
-          <div className="w-56 rounded-[28px] bg-gradient-to-b from-hero-top to-hero-bottom p-6 text-white text-center shadow-lg">
+          <div className="w-56 rounded-[28px] bg-gradient-to-b from-hero-top via-hero-bottom via-25% to-hero-bottom p-6 text-white text-center shadow-lg">
             <div className="w-16 h-16 rounded-full bg-white/15 border-2 border-white/40 flex items-center justify-center mx-auto mb-3">
               <Icon as={Lock} size="lg" />
             </div>
             <p className="font-display text-lead mb-1">Sealed</p>
-            <p className="text-caption opacity-90 mb-3">
+            <p className="text-caption mb-3">
               Something from your past is waiting for you.
             </p>
-            <div className="bg-white/20 px-3 py-1 rounded-full text-caption font-bold inline-block">
+            <div className="bg-black/20 px-3 py-1 rounded-full text-caption font-bold inline-block">
               {unlockLabel}
             </div>
           </div>

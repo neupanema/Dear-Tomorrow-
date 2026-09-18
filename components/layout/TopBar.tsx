@@ -21,7 +21,7 @@ export default function TopBar({
 
   return (
     <header
-      data-on-sky={isBrand ? "" : undefined}
+      data-focus={isBrand ? "ink" : undefined}
       className={`relative px-4 pt-4 pb-4 lg:px-10 lg:pt-10 lg:pb-8 ${
         isBrand
           ? "bg-sky lg:rounded-b-[2.5rem]"
@@ -31,15 +31,15 @@ export default function TopBar({
       {backHref && (
         <Link
           href={backHref}
-          className={`absolute left-2 top-2 lg:left-8 lg:top-8 p-2 rounded-full ${isBrand ? "text-white" : "text-ink"}`}
+          className="absolute left-2 top-2 lg:left-8 lg:top-8 p-2 rounded-full text-ink"
           aria-label="Go back"
         >
           <Icon as={ChevronLeft} size="md" />
         </Link>
       )}
       <h1
-        className={`font-display text-heading lg:text-display ${backHref ? "text-center lg:text-left lg:pl-8" : ""} ${
-          isBrand ? "text-white" : "text-ink"
+        className={`font-display text-heading lg:text-display text-ink ${
+          backHref ? "text-center lg:text-left lg:pl-8" : ""
         }`}
       >
         {title}
@@ -47,7 +47,7 @@ export default function TopBar({
       {subtitle && (
         <p
           className={`text-body lg:text-lead mt-1 lg:mt-2 ${backHref ? "text-center lg:text-left lg:pl-8" : ""} ${
-            isBrand ? "text-white/90" : "text-ink-soft"
+            isBrand ? "text-ink" : "text-ink-soft"
           }`}
         >
           {subtitle}
