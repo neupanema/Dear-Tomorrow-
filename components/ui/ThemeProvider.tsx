@@ -21,10 +21,12 @@ export const THEME_STORAGE_KEY = "dt-theme";
 
 /**
  * Runs in <head> before first paint (see app/layout.tsx) so the right theme
- * is on <html> before React hydrates, with no light-mode flash. Uses the
- * saved choice, falling back to the OS setting.
+ * is on <html> before React hydrates, with no light-mode flash. Light is
+ * always the default — the OS's prefers-color-scheme is intentionally
+ * ignored so a visitor with system dark mode still lands on the light
+ * "Doraemon Sky" theme unless they flip the in-app toggle themselves.
  */
-export const themeInitScript = `(function(){try{var t=localStorage.getItem("${THEME_STORAGE_KEY}");if(t!=="light"&&t!=="dark"){t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}document.documentElement.classList.toggle("dark",t==="dark")}catch(e){}})()`;
+export const themeInitScript = `(function(){try{var t=localStorage.getItem("${THEME_STORAGE_KEY}");document.documentElement.classList.toggle("dark",t==="dark")}catch(e){}})()`;
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 

@@ -214,12 +214,12 @@ export default function OnboardingPage() {
                   transition={{ duration: 0.2 }}
                 >
                   <div className="lg:hidden">
-                    <Button href="/sign-in" variant="white">
+                    <Button href="/sign-up" variant="white">
                       Get started
                     </Button>
                   </div>
                   <div className="hidden lg:block">
-                    <Button href="/sign-in">Get started</Button>
+                    <Button href="/sign-up">Get started</Button>
                   </div>
                 </motion.div>
               ) : (

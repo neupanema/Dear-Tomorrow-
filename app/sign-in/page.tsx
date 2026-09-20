@@ -2,31 +2,48 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Lock, Mail } from "lucide-react";
+import Link from "next/link";
+import { Mail } from "lucide-react";
 import Button from "@/components/ui/Button";
 import BrandMark from "@/components/ui/BrandMark";
 import Icon from "@/components/ui/Icon";
+import PasswordField from "@/components/ui/PasswordField";
 import { useToast } from "@/components/ui/Toast";
-import { wait } from "@/lib/utils";
+import { isValidEmail, wait } from "@/lib/utils";
 
 export default function SignInPage() {
   const router = useRouter();
   const { toast } = useToast();
   // which button is mid-request, so only that one shows the spinner
   const [pending, setPending] = useState<"password" | "google" | null>(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  async function signIn(method: "password" | "google") {
-    setPending(method);
-    // TODO: replace with a real auth call (Supabase Auth / NextAuth) once
-    // the backend exists. The wait() only stands in for its latency.
+  const canSubmit = isValidEmail(email) && password.length > 0;
+
+  async function signInWithPassword() {
+    setPending("password");
+    // TODO: replace with a real signIn call — POST email and password to
+    // /api/auth/signin (or Supabase Auth signInWithPassword) once the
+    // database exists. The wait() only stands in for its latency.
     await wait(900);
     toast("Signed in");
     router.push("/dashboard");
   }
 
-  function handleContinue(e: React.FormEvent) {
+  async function signInWithGoogle() {
+    setPending("google");
+    // TODO: replace with a real OAuth call (Supabase Auth signInWithOAuth /
+    // NextAuth Google provider) once the backend exists.
+    await wait(900);
+    toast("Signed in");
+    router.push("/dashboard");
+  }
+
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    signIn("password");
+    if (!canSubmit) return;
+    signInWithPassword();
   }
 
   return (
@@ -46,13 +63,13 @@ export default function SignInPage() {
       <main className="min-h-screen lg:min-h-0 lg:w-1/2 bg-surface flex flex-col justify-center px-6 lg:px-20">
         <div className="w-full max-w-sm mx-auto">
           <h1 className="font-display text-heading lg:text-title text-ink mb-1">
-            Create your account
+            Sign in
           </h1>
           <p className="text-body text-ink-soft mb-6">
-            So your capsules find their way back to you.
+            Enter your email and password to continue.
           </p>
 
-          <form onSubmit={handleContinue} className="flex flex-col gap-3">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
             <fieldset disabled={pending !== null} className="contents">
               <div className="relative">
                 <Icon as={Mail} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-soft pointer-events-none" />
@@ -64,25 +81,25 @@ export default function SignInPage() {
                   type="email"
                   placeholder="Email address"
                   required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full bg-cream border-2 border-line rounded-xl pl-9 pr-3 py-3 text-lead text-ink focus:border-accent"
                 />
               </div>
-              <div className="relative">
-                <Icon as={Lock} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-soft pointer-events-none" />
-                <label htmlFor="password" className="sr-only">Password</label>
-                <input
-                  id="password"
-                  name="password"
-                  autoComplete="new-password"
-                  type="password"
-                  placeholder="Password"
-                  required
-                  className="w-full bg-cream border-2 border-line rounded-xl pl-9 pr-3 py-3 text-lead text-ink focus:border-accent"
-                />
-              </div>
+
+              <PasswordField
+                id="password"
+                name="password"
+                label="Password"
+                placeholder="Password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+
               <div className="mt-2">
-                <Button type="submit" loading={pending === "password"} disabled={pending !== null}>
-                  {pending === "password" ? "Signing in..." : "Continue"}
+                <Button type="submit" loading={pending === "password"} disabled={pending !== null || !canSubmit}>
+                  {pending === "password" ? "Signing in..." : "Sign in"}
                 </Button>
               </div>
             </fieldset>
@@ -97,13 +114,20 @@ export default function SignInPage() {
           <Button
             type="button"
             variant="secondary"
-            onClick={() => signIn("google")}
+            onClick={signInWithGoogle}
             loading={pending === "google"}
             disabled={pending !== null}
             className="!text-ink"
           >
             {pending === "google" ? "Connecting..." : "Continue with Google"}
           </Button>
+
+          <p className="text-center text-body text-ink-soft mt-6">
+            Don&apos;t have an account?{" "}
+            <Link href="/sign-up" className="text-accent font-bold underline underline-offset-4">
+              Create one
+            </Link>
+          </p>
         </div>
       </main>
     </div>

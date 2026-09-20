@@ -4,7 +4,9 @@
 
 /* Theme tokens, as space-separated RGB so Tailwind can add opacity.
    :root is "Doraemon Sky". .dark is "Midnight Time Capsule", built from
-   navy #0B1224 and gold #F2C879 so it reads as the same product at night. */
+   navy #0D0F1A and antique gold #EDBE70 so it reads as the same hand-drawn
+   product at night, not a generic dark-mode SaaS skin. See the .dark block
+   below for the reasoning. */
 :root {
   --sky: 63 169 245; /* #3FA9F5 */
   --sky-deep: 27 114 188; /* #1B72BC  (was #1E7FD1; darkened to reach 4.5:1 with white) */
@@ -39,30 +41,52 @@
   }
 }
 
+/* "Midnight Time Capsule", take two. The first pass (navy bg, near-identical
+   navy cards, cool blue-white text, flat single-colour fills) read as generic
+   dark-mode-SaaS rather than a night version of the same hand-drawn product.
+   This version keeps the same navy+gold identity but: warms the text to a
+   candlelit parchment tone instead of cold blue-white, gives cards real
+   tonal lift instead of leaning on hairline borders, and warms coral/gold
+   toward terracotta/antique-gold so the palette reads hand-mixed, not
+   generated. Contrast re-verified at 4.5:1+ for every text pairing below. */
 .dark {
-  --sky: 27 44 92; /* #1B2C5C  header / hero top */
-  --sky-deep: 46 82 170; /* #2E52AA  fills that carry white text */
-  --sun: 242 200 121; /* #F2C879  the gold */
-  --coral: 210 68 68; /* same as light: primary actions stay recognisable */
-  --ink: 238 241 250; /* #EEF1FA  text */
-  --ink-soft: 156 168 200; /* #9CA8C8 */
-  --cream: 11 18 36; /* #0B1224  page background */
-  --line: 36 48 79; /* #24304F */
-  --line-strong: 52 68 109; /* #34446D */
+  --sky: 26 40 78; /* #1A284E  header / hero top */
+  --sky-deep: 48 78 152; /* #304E98  fills that carry white text */
+  --sun: 237 190 112; /* #EDBE70  antique gold, warmed from the lemon-pastel light value */
+  --coral: 195 80 62; /* #C3503E  terracotta, not a clean alert-red */
+  --ink: 232 224 210; /* #E8E0D2  warm parchment text (was cool blue-white) */
+  --ink-soft: 168 155 140; /* #A89B8C  warm taupe, not blue-grey */
+  --cream: 13 15 26; /* #0D0F1A  page background */
+  --line: 38 35 46; /* #26232E */
+  --line-strong: 58 52 66; /* #3A3442 */
 
-  --surface: 18 27 51; /* #121B33 */
-  --tint: 24 36 70; /* #182446 */
-  --accent: 242 200 121; /* gold */
-  --on-accent: 11 18 36; /* navy on gold */
-  --on-sun: 59 42 0; /* #3B2A00 */
-  --hero-top: 27 44 92; /* #1B2C5C */
-  --hero-bottom: 11 18 36; /* fades into the page */
+  --surface: 30 29 46; /* #1E1D2E  visibly lifted off the page, not a near-match */
+  --tint: 38 34 54; /* #262236 */
+  --accent: 237 190 112; /* gold */
+  --on-accent: 42 27 10; /* #2A1B0A  warm ink on gold, not navy */
+  --on-sun: 46 30 8; /* #2E1E08 */
+  --hero-top: 26 40 78; /* #1A284E */
+  --hero-bottom: 13 15 26; /* fades into the page */
 
-  --map-land: 19 32 56; /* #132038 */
-  --map-road: 34 51 90; /* #22335A */
-  --map-park: 26 46 75; /* #1A2E4B */
+  --map-land: 22 30 26; /* #161E1A */
+  --map-road: 40 35 28; /* #28231C */
+  --map-park: 24 36 29; /* #18241D */
 
   color-scheme: dark;
+}
+
+/* A soft lamp-glow from the top and a whisper of film grain, instead of one
+   flat fill — the thing that made the first pass read as machine-generated.
+   Decorative only: no effect on layout, contrast, or light mode. */
+.dark body {
+  background-image: radial-gradient(
+      ellipse 900px 420px at 50% -10%,
+      rgb(var(--sun) / 0.05),
+      transparent 65%
+    ),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: no-repeat, repeat;
+  background-attachment: fixed, fixed;
 }
 
 html,
@@ -109,6 +133,7 @@ body {
   }
 
   .card {
-    @apply bg-surface rounded-2xl border-2 border-line p-3;
+    @apply bg-surface rounded-2xl border-2 border-line p-3
+           dark:border-line/80 dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05),0_12px_28px_-16px_rgba(0,0,0,0.7)];
   }
 }

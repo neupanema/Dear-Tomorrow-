@@ -43,3 +43,8 @@ export function distanceKm(
 export function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+/** Format check only (no DNS/mailbox lookup) — good enough to enable/disable a submit button. */
+export function isValidEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
