@@ -17,8 +17,10 @@ export interface Capsule {
   unlockDate?: string; // ISO date string
   unlockLocation?: {
     label: string;
-    lat: number;
-    lng: number;
+    // Real lat/lng once LocationPicker uses a real map SDK instead of the
+    // percent-based placeholder — see components/new-capsule/LocationPicker.tsx.
+    lat?: number;
+    lng?: number;
   };
   createdAt: string; // ISO date string
 }

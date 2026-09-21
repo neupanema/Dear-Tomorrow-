@@ -9,7 +9,8 @@ import BrandMark from "@/components/ui/BrandMark";
 import Icon from "@/components/ui/Icon";
 import PasswordField from "@/components/ui/PasswordField";
 import { useToast } from "@/components/ui/Toast";
-import { isValidEmail, wait } from "@/lib/utils";
+import { isValidEmail } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -23,21 +24,23 @@ export default function SignInPage() {
 
   async function signInWithPassword() {
     setPending("password");
-    // TODO: replace with a real signIn call — POST email and password to
-    // /api/auth/signin (or Supabase Auth signInWithPassword) once the
-    // database exists. The wait() only stands in for its latency.
-    await wait(900);
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      toast(error.message, { variant: "error" });
+      setPending(null);
+      return;
+    }
+
     toast("Signed in");
     router.push("/dashboard");
+    router.refresh();
   }
 
-  async function signInWithGoogle() {
-    setPending("google");
-    // TODO: replace with a real OAuth call (Supabase Auth signInWithOAuth /
-    // NextAuth Google provider) once the backend exists.
-    await wait(900);
-    toast("Signed in");
-    router.push("/dashboard");
+  function signInWithGoogle() {
+    // Google is shown for now but not wired up yet.
+    toast("Google sign-in is coming soon", { variant: "info" });
   }
 
   function handleSubmit(e: React.FormEvent) {

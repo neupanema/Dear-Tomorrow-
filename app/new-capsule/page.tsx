@@ -15,7 +15,8 @@ import ReviewSummary from "@/components/new-capsule/ReviewSummary";
 import SealAnimation from "@/components/new-capsule/SealAnimation";
 import { UnlockMethod } from "@/lib/types";
 import { useToast } from "@/components/ui/Toast";
-import { formatDate, wait } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
 import Icon from "@/components/ui/Icon";
 
 const TOTAL_STEPS = 4;
@@ -35,6 +36,9 @@ export default function NewCapsulePage() {
   const [method, setMethod] = useState<UnlockMethod>("date");
   const [date, setDate] = useState<Date | null>(null);
   const [locationPicked, setLocationPicked] = useState(false);
+  const [locationPoint, setLocationPoint] = useState<{ xPercent: number; yPercent: number } | null>(
+    null
+  );
 
   const unlockLabel =
     method === "place"
@@ -57,10 +61,50 @@ export default function NewCapsulePage() {
   async function handleSeal() {
     if (saving) return;
     setSaving(true);
-    // TODO: replace with a real POST /capsules call once the backend exists,
-    // uploading `photo` to storage and saving message/method/date/location.
-    // The wait() only stands in for that request's latency.
-    await wait(600);
+
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      toast("Please sign in again", { variant: "error" });
+      setSaving(false);
+      router.push("/sign-in");
+      return;
+    }
+
+    // No title field in this flow — derive a short one from the message.
+    const title = message.trim().slice(0, 60) || "A letter to future me";
+    const usesDate = method === "date" || method === "date-and-place";
+    const usesPlace = method === "place" || method === "date-and-place";
+
+    // TODO: upload `photo` to Supabase Storage and save its URL once that
+    // bucket exists — see components/ui/PhotoDrop.tsx.
+    // Only send the columns this unlock method actually uses. A date-only
+    // capsule shouldn't touch the location columns at all.
+    const { error } = await supabase.from("capsules").insert({
+      user_id: user.id,
+      title,
+      message,
+      unlock_method: method,
+      ...(usesDate && date ? { unlock_date: date.toISOString() } : {}),
+      ...(usesPlace
+        ? {
+            unlock_location_label: locationPicked ? "Selected place" : null,
+            unlock_location_x: locationPoint?.xPercent ?? null,
+            unlock_location_y: locationPoint?.yPercent ?? null,
+          }
+        : {}),
+    });
+
+    setSaving(false);
+
+    if (error) {
+      toast(error.message, { variant: "error" });
+      return;
+    }
+
     setPhase("sealing");
   }
 
@@ -218,7 +262,12 @@ export default function NewCapsulePage() {
                 <CapsuleCalendar value={date} onChange={setDate} />
               )}
               {step === 3 && method === "place" && (
-                <LocationPicker onChange={() => setLocationPicked(true)} />
+                <LocationPicker
+                  onChange={(point) => {
+                    setLocationPicked(true);
+                    setLocationPoint(point);
+                  }}
+                />
               )}
 
               {step === 4 && (

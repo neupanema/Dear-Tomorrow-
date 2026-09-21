@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import TopBar from "@/components/layout/TopBar";
 import AppShell from "@/components/layout/AppShell";
 import Chip from "@/components/ui/Chip";
 import EmptyState from "@/components/ui/EmptyState";
 import Icon from "@/components/ui/Icon";
+import { useToast } from "@/components/ui/Toast";
 import { EmptyMapIllustration } from "@/components/ui/EmptyIllustrations";
-import { MOCK_CAPSULES } from "@/lib/mock-data";
+import { createClient } from "@/lib/supabase/client";
+import { toCapsule, type CapsuleRow } from "@/lib/supabase/capsules";
+import { Capsule } from "@/lib/types";
 import { MapPin, Plus } from "lucide-react";
 
 type Filter = "all" | "sealed" | "unlocked";
@@ -27,7 +30,7 @@ function MapArea({
   heightClass,
   overlay,
 }: {
-  placeCapsules: typeof MOCK_CAPSULES;
+  placeCapsules: Capsule[];
   heightClass: string;
   /** Shown centred over a dimmed map (used for empty states). */
   overlay?: React.ReactNode;
@@ -75,8 +78,32 @@ function MapArea({
 }
 
 export default function MapPage() {
+  const { toast } = useToast();
   const [filter, setFilter] = useState<Filter>("all");
-  const allPlaceCapsules = MOCK_CAPSULES.filter((c) => c.unlockLocation);
+  const [capsules, setCapsules] = useState<Capsule[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    const supabase = createClient();
+    supabase
+      .from("capsules")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .then(({ data, error }) => {
+        if (!active) return;
+        if (error) {
+          toast(error.message, { variant: "error" });
+          return;
+        }
+        setCapsules(((data ?? []) as CapsuleRow[]).map(toCapsule));
+      });
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const allPlaceCapsules = capsules.filter((c) => c.unlockLocation);
   const hasPlaceCapsules = allPlaceCapsules.length > 0;
   const placeCapsules = allPlaceCapsules.filter(
     (c) => filter === "all" || c.status === filter

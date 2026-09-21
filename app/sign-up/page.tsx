@@ -9,7 +9,8 @@ import BrandMark from "@/components/ui/BrandMark";
 import Icon from "@/components/ui/Icon";
 import PasswordField from "@/components/ui/PasswordField";
 import { useToast } from "@/components/ui/Toast";
-import { isValidEmail, wait } from "@/lib/utils";
+import { isValidEmail } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -34,12 +35,24 @@ export default function SignUpPage() {
 
   async function createAccount() {
     setPending(true);
-    // TODO: replace with a real signup call — POST first name, last name,
-    // email, password to /api/auth/signup (or Supabase Auth signUp) once
-    // the database exists. The wait() only stands in for its latency.
-    await wait(900);
+    const supabase = createClient();
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { first_name: firstName.trim(), last_name: lastName.trim() },
+      },
+    });
+
+    if (error) {
+      toast(error.message, { variant: "error" });
+      setPending(false);
+      return;
+    }
+
     toast("Account created");
     router.push("/dashboard");
+    router.refresh();
   }
 
   function handleSubmit(e: React.FormEvent) {

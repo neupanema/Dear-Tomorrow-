@@ -6,7 +6,9 @@ import { notFound, useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowRight, ChevronLeft, Lock } from "lucide-react";
 import UnlockOrb from "@/components/capsules/UnlockOrb";
-import { getCapsuleById } from "@/lib/mock-data";
+import { createClient } from "@/lib/supabase/client";
+import { toCapsule, type CapsuleRow } from "@/lib/supabase/capsules";
+import { Capsule } from "@/lib/types";
 import { formatDate, daysAgo } from "@/lib/utils";
 import Icon from "@/components/ui/Icon";
 
@@ -14,11 +16,30 @@ export default function CapsuleDetailPage() {
   // useParams (not the `params` prop) — in this Next version the prop is a
   // Promise, which can't be read synchronously in a client component.
   const { id } = useParams<{ id: string }>();
-  const capsule = getCapsuleById(id);
+  // undefined = still loading, null = not found (or not this user's capsule —
+  // row-level security returns no row for both).
+  const [capsule, setCapsule] = useState<Capsule | null | undefined>(undefined);
   // idle: waiting for a tap -> opening: crack + burst -> revealed: the message
   const [phase, setPhase] = useState<"idle" | "opening" | "revealed">("idle");
   const handleOpen = useCallback(() => setPhase("opening"), []);
   const handleOpened = useCallback(() => setPhase("revealed"), []);
+
+  useEffect(() => {
+    let active = true;
+    const supabase = createClient();
+    supabase
+      .from("capsules")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (!active) return;
+        setCapsule(error || !data ? null : toCapsule(data as CapsuleRow));
+      });
+    return () => {
+      active = false;
+    };
+  }, [id]);
 
   // The tapped button disappears when the message is revealed, so hand focus
   // to the new heading rather than dropping keyboard/screen-reader users on <body>.
@@ -27,6 +48,7 @@ export default function CapsuleDetailPage() {
     if (phase === "revealed") revealedHeading.current?.focus();
   }, [phase]);
 
+  if (capsule === undefined) return null;
   if (!capsule) return notFound();
 
   // --- sealed: nothing to tap, it opens itself when the condition is met ---

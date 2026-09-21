@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import TopBar from "@/components/layout/TopBar";
 import AppShell from "@/components/layout/AppShell";
@@ -11,32 +11,64 @@ import Chip from "@/components/ui/Chip";
 import Icon from "@/components/ui/Icon";
 import EmptyState from "@/components/ui/EmptyState";
 import { EmptyCapsulesIllustration } from "@/components/ui/EmptyIllustrations";
-import { MOCK_CAPSULES } from "@/lib/mock-data";
+import { useToast } from "@/components/ui/Toast";
+import { createClient } from "@/lib/supabase/client";
+import { toCapsule, type CapsuleRow } from "@/lib/supabase/capsules";
+import { Capsule } from "@/lib/types";
 import { Lock, Plus, Sparkles } from "lucide-react";
 
 type Filter = "all" | "sealed" | "unlocked";
 
 export default function DashboardPage() {
+  const { toast } = useToast();
   const [filter, setFilter] = useState<Filter>("all");
+  const [capsules, setCapsules] = useState<Capsule[] | null>(null);
 
-  const sealedCount = MOCK_CAPSULES.filter((c) => c.status === "sealed").length;
-  const unlockedCount = MOCK_CAPSULES.filter(
+  useEffect(() => {
+    let active = true;
+    const supabase = createClient();
+    supabase
+      .from("capsules")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .then(({ data, error }) => {
+        if (!active) return;
+        if (error) {
+          toast(error.message, { variant: "error" });
+          setCapsules([]);
+          return;
+        }
+        setCapsules(((data ?? []) as CapsuleRow[]).map(toCapsule));
+      });
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const loading = capsules === null;
+  const allCapsules = capsules ?? [];
+
+  const sealedCount = allCapsules.filter((c) => c.status === "sealed").length;
+  const unlockedCount = allCapsules.filter(
     (c) => c.status === "unlocked"
   ).length;
 
-  const hasCapsules = MOCK_CAPSULES.length > 0;
+  const hasCapsules = allCapsules.length > 0;
 
   const visibleCapsules = useMemo(() => {
-    if (filter === "all") return MOCK_CAPSULES;
-    return MOCK_CAPSULES.filter((c) => c.status === filter);
-  }, [filter]);
+    if (filter === "all") return allCapsules;
+    return allCapsules.filter((c) => c.status === filter);
+  }, [filter, allCapsules]);
 
   return (
     <AppShell>
       <TopBar
         title="Your capsules"
         subtitle={
-          hasCapsules
+          loading
+            ? "Loading your capsules..."
+            : hasCapsules
             ? `${sealedCount} sealed, ${unlockedCount} ready to open`
             : "Nothing sealed yet"
         }
@@ -78,7 +110,7 @@ export default function DashboardPage() {
           </AnimatePresence>
         </div>
 
-        {!hasCapsules && (
+        {!loading && !hasCapsules && (
           <EmptyState
             className="mt-10 lg:mt-24"
             illustration={<EmptyCapsulesIllustration className="w-48 h-auto lg:w-56" />}
