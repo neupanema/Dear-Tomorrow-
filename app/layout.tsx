@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Baloo_2, Nunito } from "next/font/google";
+import "leaflet/dist/leaflet.css";
 import "./globals.css";
 import Providers from "./providers";
 import { themeInitScript } from "@/components/ui/ThemeProvider";

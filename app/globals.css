@@ -137,3 +137,92 @@ body {
            dark:border-line/80 dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05),0_12px_28px_-16px_rgba(0,0,0,0.7)];
   }
 }
+
+/* Leaflet (maps) picks its own colours; bring it onto the theme tokens. */
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: rgb(var(--surface));
+  color: rgb(var(--ink));
+}
+.leaflet-container a.leaflet-popup-close-button {
+  color: rgb(var(--ink-soft));
+}
+/* OSM tiles are light-only; invert + rotate hue gives a dark map that keeps
+   land/water/road colours recognisable. */
+.dark .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9);
+}
+/* SVG map shapes (CSS vars can't go in Leaflet's colour options). */
+.dt-radius {
+  stroke: rgb(var(--sky-deep));
+  fill: rgb(var(--sky-deep));
+}
+.dt-user {
+  stroke: #fff;
+  fill: #2b7fff;
+}
+
+/* Map pins (see components/map/pinIcon.ts). `color` on .dt-pin is the pin's
+   theme colour; the SVG uses currentColor. Animate the inner element, never
+   the wrapper: Leaflet positions the wrapper with its own transform. */
+.dt-pin {
+  position: relative;
+  width: 40px;
+  height: 52px;
+  transform-origin: 50% 96%;
+  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.3));
+  transition: transform 0.18s ease;
+  animation: dt-pin-drop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+.dt-pin-wrap:hover .dt-pin,
+.dt-pin-wrap:focus-visible .dt-pin {
+  transform: translateY(-3px) scale(1.1);
+}
+.dt-pin--selected {
+  transform: scale(1.2);
+}
+.dt-pin-wrap:hover .dt-pin--selected,
+.dt-pin-wrap:focus-visible .dt-pin--selected {
+  transform: translateY(-3px) scale(1.28);
+}
+.dt-pin-wrap:focus-visible {
+  outline: none;
+}
+/* "Ready to open" pins breathe a ring on the ground beneath the tip. */
+.dt-pin__pulse {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 18px;
+  height: 8px;
+  margin-left: -9px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.45;
+  animation: dt-pin-pulse 2s ease-out infinite;
+}
+@keyframes dt-pin-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.85);
+  }
+}
+@keyframes dt-pin-pulse {
+  from {
+    opacity: 0.5;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 0;
+    transform: scale(3);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dt-pin,
+  .dt-pin__pulse {
+    animation: none;
+  }
+  .dt-pin__pulse {
+    opacity: 0.25;
+  }
+}

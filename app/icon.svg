@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3FA9F5"/>
+      <stop offset="1" stop-color="#1B72BC"/>
+    </linearGradient>
+    <clipPath id="pill"><rect x="20" y="7" width="24" height="50" rx="12"/></clipPath>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="url(#sky)"/>
+  <!-- the time capsule -->
+  <rect x="20" y="7" width="24" height="50" rx="12" fill="#fff"/>
+  <!-- red band -->
+  <rect x="20" y="27" width="24" height="9" fill="#EB4E4E" clip-path="url(#pill)"/>
+  <!-- golden bell hanging from the band -->
+  <circle cx="32" cy="38.5" r="7.2" fill="#FFD34D" stroke="#C99500" stroke-width="1.4"/>
+  <path d="M26.2 39.2h11.6" stroke="#7A5300" stroke-width="1.6" stroke-linecap="round"/>
+  <circle cx="32" cy="43" r="1.4" fill="#7A5300"/>
+  <!-- soft highlight on the capsule -->
+  <path d="M25 15v9" stroke="#DCEBFA" stroke-width="2.2" stroke-linecap="round"/>
+</svg>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import TopBar from "@/components/layout/TopBar";
 import AppShell from "@/components/layout/AppShell";
@@ -14,6 +14,8 @@ import { EmptyCapsulesIllustration } from "@/components/ui/EmptyIllustrations";
 import { useToast } from "@/components/ui/Toast";
 import { createClient } from "@/lib/supabase/client";
 import { toCapsule, type CapsuleRow } from "@/lib/supabase/capsules";
+import { checkLocationCapsules } from "@/lib/checkLocationCapsules";
+import { useGeolocation } from "@/lib/useGeolocation";
 import { Capsule } from "@/lib/types";
 import { Lock, Plus, Sparkles } from "lucide-react";
 
@@ -24,27 +26,52 @@ export default function DashboardPage() {
   const [filter, setFilter] = useState<Filter>("all");
   const [capsules, setCapsules] = useState<Capsule[] | null>(null);
 
-  useEffect(() => {
-    let active = true;
-    const supabase = createClient();
-    supabase
+  const { coords } = useGeolocation();
+  const locationChecked = useRef(false);
+
+  const loadCapsules = useCallback(async () => {
+    const { data, error } = await createClient()
       .from("capsules")
       .select("*")
-      .order("created_at", { ascending: false })
-      .then(({ data, error }) => {
-        if (!active) return;
-        if (error) {
-          toast(error.message, { variant: "error" });
-          setCapsules([]);
-          return;
+      .order("created_at", { ascending: false });
+    if (error) {
+      toast(error.message, { variant: "error" });
+      setCapsules((prev) => prev ?? []);
+      return;
+    }
+    setCapsules(((data ?? []) as CapsuleRow[]).map(toCapsule));
+  }, [toast]);
+
+  useEffect(() => {
+    void loadCapsules();
+  }, [loadCapsules]);
+
+  // Once the browser hands over a position, see whether we're standing at any
+  // sealed place capsule. If location is denied or unsupported, `coords` just
+  // stays null and this never runs — deliberately silent, since saying no to
+  // location is a normal choice. Checked once per visit: the ref also keeps
+  // React strict mode's double-invoked effect from running it twice.
+  useEffect(() => {
+    if (!coords || locationChecked.current) return;
+    locationChecked.current = true;
+
+    checkLocationCapsules(coords)
+      .then((unlocked) => {
+        if (unlocked.length === 0) return;
+        if (unlocked.length <= 3) {
+          unlocked.forEach((c) =>
+            toast(`🎉 ${c.title} just unlocked!`, { duration: 6000 })
+          );
+        } else {
+          toast(`🎉 ${unlocked.length} capsules just unlocked!`, { duration: 6000 });
         }
-        setCapsules(((data ?? []) as CapsuleRow[]).map(toCapsule));
+        return loadCapsules();
+      })
+      .catch(() => {
+        // A failed background check shouldn't interrupt the dashboard; it
+        // will simply run again on the next visit.
       });
-    return () => {
-      active = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [coords, loadCapsules, toast]);
 
   const loading = capsules === null;
   const allCapsules = capsules ?? [];

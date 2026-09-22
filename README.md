@@ -118,11 +118,6 @@ The places to touch are already marked with `// TODO` comments:
   Auth / NextAuth call.
 - `app/new-capsule/page.tsx` (`handleSeal`) — POST the form state to your
   capsules table/API instead of just flipping `sealed` to true.
-- `components/ui/PhotoDrop.tsx` — upload the file to storage instead of only
-  making a local preview.
-- `components/new-capsule/LocationPicker.tsx` and `app/map/page.tsx` — swap
-  the hand-drawn map for a real map SDK (e.g. `react-map-gl` or
-  `@react-google-maps/api`) once you have an API key.
 - `lib/mock-data.ts` — replace with a real fetch/query once there's a
   database to query.
 

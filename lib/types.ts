@@ -12,15 +12,23 @@ export interface Capsule {
   message: string;
   /** Tailwind gradient classes standing in for a real uploaded photo. */
   photoGradient: string;
+  /** Storage path of the uploaded photo, if one was attached. */
+  photoPath?: string;
   status: CapsuleStatus;
   unlockMethod: UnlockMethod;
   unlockDate?: string; // ISO date string
   unlockLocation?: {
     label: string;
-    // Real lat/lng once LocationPicker uses a real map SDK instead of the
-    // percent-based placeholder — see components/new-capsule/LocationPicker.tsx.
     lat?: number;
     lng?: number;
   };
   createdAt: string; // ISO date string
+}
+
+/** A spot picked on the map in components/new-capsule/LocationPicker.tsx. */
+export interface LocationPoint {
+  lat: number;
+  lng: number;
+  /** Human-readable name from reverse geocoding; absent until it resolves (or if it fails). */
+  label?: string;
 }

@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
 import { Calendar, MapPin, Sparkles, Video, Check, Lock } from "lucide-react";
 import TopBar from "@/components/layout/TopBar";
@@ -10,16 +11,22 @@ import PhotoDrop from "@/components/ui/PhotoDrop";
 import StepIndicator from "@/components/new-capsule/StepIndicator";
 import MethodCard from "@/components/new-capsule/MethodCard";
 import CapsuleCalendar from "@/components/new-capsule/CapsuleCalendar";
-import LocationPicker from "@/components/new-capsule/LocationPicker";
 import ReviewSummary from "@/components/new-capsule/ReviewSummary";
 import SealAnimation from "@/components/new-capsule/SealAnimation";
-import { UnlockMethod } from "@/lib/types";
+import { LocationPoint, UnlockMethod } from "@/lib/types";
 import { useToast } from "@/components/ui/Toast";
 import { formatDate } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
+import { removeCapsulePhoto, uploadCapsulePhoto } from "@/lib/photos";
 import Icon from "@/components/ui/Icon";
 
 const TOTAL_STEPS = 4;
+
+// Leaflet touches `window` on import, so the picker can only load in the browser.
+const LocationPicker = dynamic(() => import("@/components/new-capsule/LocationPicker"), {
+  ssr: false,
+  loading: () => <div aria-hidden="true" className="h-64 lg:h-80 rounded-2xl bg-map-land animate-pulse" />,
+});
 
 export default function NewCapsulePage() {
   const router = useRouter();
@@ -35,19 +42,18 @@ export default function NewCapsulePage() {
   const [photo, setPhoto] = useState<File | null>(null);
   const [method, setMethod] = useState<UnlockMethod>("date");
   const [date, setDate] = useState<Date | null>(null);
-  const [locationPicked, setLocationPicked] = useState(false);
-  const [locationPoint, setLocationPoint] = useState<{ xPercent: number; yPercent: number } | null>(
-    null
-  );
+  const [locationPoint, setLocationPoint] = useState<LocationPoint | null>(null);
 
+  const dateLabel = date ? formatDate(date.toISOString()) : "No date selected";
+  const placeLabel = locationPoint
+    ? locationPoint.label ?? "Selected place"
+    : "No place selected";
   const unlockLabel =
     method === "place"
-      ? locationPicked
-        ? "Selected place"
-        : "No place selected"
-      : date
-      ? formatDate(date.toISOString())
-      : "No date selected";
+      ? placeLabel
+      : method === "date-and-place"
+      ? `${dateLabel} · ${placeLabel}`
+      : dateLabel;
 
   function next() {
     setStepDir(1);
@@ -74,26 +80,52 @@ export default function NewCapsulePage() {
       return;
     }
 
+    const needsPlace = method === "place" || method === "date-and-place";
+    if (needsPlace && !locationPoint) {
+      // Without coordinates the capsule could never unlock.
+      toast("Pick a place on the map first", { variant: "error" });
+      setSaving(false);
+      setStepDir(-1);
+      setStep(3);
+      return;
+    }
+
     // No title field in this flow — derive a short one from the message.
     const title = message.trim().slice(0, 60) || "A letter to future me";
     const usesDate = method === "date" || method === "date-and-place";
     const usesPlace = method === "place" || method === "date-and-place";
 
-    // TODO: upload `photo` to Supabase Storage and save its URL once that
-    // bucket exists — see components/ui/PhotoDrop.tsx.
+    // The photo is stored under the capsule's id, so pick the id up front and
+    // upload before the row exists. A failed upload stops the seal (rather
+    // than silently saving the capsule without its photo).
+    const capsuleId = crypto.randomUUID();
+    let photoPath: string | null = null;
+    if (photo) {
+      try {
+        photoPath = await uploadCapsulePhoto(supabase, user.id, capsuleId, photo);
+      } catch (err) {
+        toast(`Couldn't upload your photo: ${(err as Error).message}`, { variant: "error" });
+        setSaving(false);
+        return;
+      }
+    }
+
     // Only send the columns this unlock method actually uses. A date-only
     // capsule shouldn't touch the location columns at all.
     const { error } = await supabase.from("capsules").insert({
+      id: capsuleId,
       user_id: user.id,
       title,
+      photo_path: photoPath,
       message,
       unlock_method: method,
+      status: "sealed",
       ...(usesDate && date ? { unlock_date: date.toISOString() } : {}),
-      ...(usesPlace
+      ...(usesPlace && locationPoint
         ? {
-            unlock_location_label: locationPicked ? "Selected place" : null,
-            unlock_location_x: locationPoint?.xPercent ?? null,
-            unlock_location_y: locationPoint?.yPercent ?? null,
+            unlock_lat: locationPoint.lat,
+            unlock_lng: locationPoint.lng,
+            unlock_location_label: locationPoint.label ?? null,
           }
         : {}),
     });
@@ -101,6 +133,8 @@ export default function NewCapsulePage() {
     setSaving(false);
 
     if (error) {
+      // Don't leave an orphaned upload behind for a capsule that doesn't exist.
+      if (photoPath) void removeCapsulePhoto(supabase, photoPath);
       toast(error.message, { variant: "error" });
       return;
     }
@@ -187,6 +221,8 @@ export default function NewCapsulePage() {
                 : step === 3
                 ? method === "place"
                   ? "Pick a place"
+                  : method === "date-and-place"
+                  ? "Pick a date and place"
                   : "Pick a date"
                 : "Review & seal"
             }
@@ -261,13 +297,10 @@ export default function NewCapsulePage() {
               {step === 3 && method !== "place" && (
                 <CapsuleCalendar value={date} onChange={setDate} />
               )}
-              {step === 3 && method === "place" && (
-                <LocationPicker
-                  onChange={(point) => {
-                    setLocationPicked(true);
-                    setLocationPoint(point);
-                  }}
-                />
+              {step === 3 && method !== "date" && (
+                <div className={method === "date-and-place" ? "mt-6" : undefined}>
+                  <LocationPicker value={locationPoint} onChange={setLocationPoint} />
+                </div>
               )}
 
               {step === 4 && (

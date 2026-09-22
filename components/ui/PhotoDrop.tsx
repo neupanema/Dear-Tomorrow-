@@ -1,10 +1,10 @@
 "use client";
 
-import { Camera, Loader2, X } from "lucide-react";
+import { Camera, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import Icon from "@/components/ui/Icon";
 import { useToast } from "@/components/ui/Toast";
-import { wait } from "@/lib/utils";
+import { validatePhoto } from "@/lib/photos";
 
 interface PhotoDropProps {
   onChange?: (file: File | null) => void;
@@ -13,7 +13,6 @@ interface PhotoDropProps {
 export default function PhotoDrop({ onChange }: PhotoDropProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
 
   // Release the blob URL when it's replaced or the component goes away.
@@ -23,20 +22,22 @@ export default function PhotoDrop({ onChange }: PhotoDropProps) {
     };
   }, [previewUrl]);
 
-  async function handleFile(file: File | null) {
-    onChange?.(file);
+  // This only previews. The file itself is uploaded when the capsule is
+  // sealed (see handleSeal in app/new-capsule/page.tsx).
+  function handleFile(file: File | null) {
     if (!file) {
+      onChange?.(null);
       setPreviewUrl(null);
       toast("Photo removed", { variant: "info" });
       return;
     }
+    const problem = validatePhoto(file);
+    if (problem) {
+      toast(problem, { variant: "error" });
+      return;
+    }
+    onChange?.(file);
     setPreviewUrl(URL.createObjectURL(file));
-    // TODO: once the backend exists, upload `file` to storage here instead
-    // of (or in addition to) making a local preview. The wait() below only
-    // stands in for that upload's latency.
-    setUploading(true);
-    await wait(700);
-    setUploading(false);
     toast("Photo added");
   }
 
@@ -49,20 +50,10 @@ export default function PhotoDrop({ onChange }: PhotoDropProps) {
           alt="Selected photo"
           className="h-full w-full object-cover"
         />
-        {uploading && (
-          <div
-            role="status"
-            className="absolute inset-0 bg-black/50 flex items-center justify-center gap-2 text-white text-body font-bold"
-          >
-            <Icon as={Loader2} className="animate-spin" />
-            Adding photo...
-          </div>
-        )}
         <button
           type="button"
           onClick={() => handleFile(null)}
-          disabled={uploading}
-          className="absolute top-2 right-2 h-7 w-7 rounded-full bg-surface/90 flex items-center justify-center disabled:opacity-0"
+          className="absolute top-2 right-2 h-7 w-7 rounded-full bg-surface/90 flex items-center justify-center"
           aria-label="Remove photo"
         >
           <Icon as={X} size="sm" className="text-ink" />

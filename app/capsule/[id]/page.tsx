@@ -9,6 +9,7 @@ import UnlockOrb from "@/components/capsules/UnlockOrb";
 import { createClient } from "@/lib/supabase/client";
 import { toCapsule, type CapsuleRow } from "@/lib/supabase/capsules";
 import { Capsule } from "@/lib/types";
+import { getCapsulePhotoUrl } from "@/lib/photos";
 import { formatDate, daysAgo } from "@/lib/utils";
 import Icon from "@/components/ui/Icon";
 
@@ -21,6 +22,11 @@ export default function CapsuleDetailPage() {
   const [capsule, setCapsule] = useState<Capsule | null | undefined>(undefined);
   // idle: waiting for a tap -> opening: crack + burst -> revealed: the message
   const [phase, setPhase] = useState<"idle" | "opening" | "revealed">("idle");
+  // Photos are in a private bucket, so show a short-lived signed link.
+  // idle: not asked for yet / no photo -> loading -> a URL, or "error"
+  const [photo, setPhoto] = useState<{ state: "loading" | "error" | "ready"; url?: string }>({
+    state: "loading",
+  });
   const handleOpen = useCallback(() => setPhase("opening"), []);
   const handleOpened = useCallback(() => setPhase("revealed"), []);
 
@@ -40,6 +46,18 @@ export default function CapsuleDetailPage() {
       active = false;
     };
   }, [id]);
+
+  const photoPath = capsule?.status === "unlocked" ? capsule.photoPath : undefined;
+  useEffect(() => {
+    if (!photoPath) return;
+    let active = true;
+    getCapsulePhotoUrl(createClient(), photoPath).then((url) => {
+      if (active) setPhoto(url ? { state: "ready", url } : { state: "error" });
+    });
+    return () => {
+      active = false;
+    };
+  }, [photoPath]);
 
   // The tapped button disappears when the message is revealed, so hand focus
   // to the new heading rather than dropping keyboard/screen-reader users on <body>.
@@ -152,14 +170,29 @@ export default function CapsuleDetailPage() {
           </motion.h1>
         </div>
         <div className="flex-1 p-4 lg:p-8 bg-surface">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.92 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3, type: "spring", stiffness: 200, damping: 20 }}
-            className={`h-32 lg:h-56 rounded-2xl mb-3 bg-gradient-to-br ${capsule.photoGradient} flex items-center justify-center text-white text-body font-bold`}
-          >
-            Your photo from that day
-          </motion.div>
+          {capsule.photoPath && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3, type: "spring", stiffness: 200, damping: 20 }}
+              className="h-56 lg:h-72 rounded-2xl mb-3 overflow-hidden bg-tint flex items-center justify-center"
+            >
+              {photo.state === "ready" ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={photo.url}
+                  alt="Your photo from that day"
+                  className="h-full w-full object-cover"
+                />
+              ) : photo.state === "error" ? (
+                <p className="text-caption text-ink-soft px-4 text-center">
+                  Couldn&apos;t load your photo. Try reopening this capsule.
+                </p>
+              ) : (
+                <div aria-hidden="true" className="h-full w-full animate-pulse bg-line" />
+              )}
+            </motion.div>
+          )}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}

@@ -13,12 +13,7 @@ export function daysAgo(iso: string): number {
   return Math.max(0, Math.round((now - created) / (1000 * 60 * 60 * 24)));
 }
 
-/**
- * Haversine distance between two lat/lng points, in kilometers.
- * This is the function you'll call once real geolocation comes in — pass
- * the user's current position and a capsule's saved unlockLocation, and
- * unlock it once the result is under whatever radius you choose (e.g. 0.2km).
- */
+/** Haversine distance between two lat/lng points, in kilometers. */
 export function distanceKm(
   a: { lat: number; lng: number },
   b: { lat: number; lng: number }
@@ -34,6 +29,20 @@ export function distanceKm(
     Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
 
   return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+}
+
+/** Same as distanceKm, in meters — the unit the unlock radius is expressed in. */
+export function distanceMeters(
+  a: { lat: number; lng: number },
+  b: { lat: number; lng: number }
+): number {
+  return distanceKm(a, b) * 1000;
+}
+
+/** "450 m", "2.3 km", "18 km" — for showing how far away a place is. */
+export function formatDistance(km: number): string {
+  if (km < 1) return `${Math.max(1, Math.round(km * 1000))} m`;
+  return km < 10 ? `${km.toFixed(1)} km` : `${Math.round(km)} km`;
 }
 
 /**

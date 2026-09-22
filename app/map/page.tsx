@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import TopBar from "@/components/layout/TopBar";
 import AppShell from "@/components/layout/AppShell";
 import Chip from "@/components/ui/Chip";
@@ -8,84 +9,35 @@ import EmptyState from "@/components/ui/EmptyState";
 import Icon from "@/components/ui/Icon";
 import { useToast } from "@/components/ui/Toast";
 import { EmptyMapIllustration } from "@/components/ui/EmptyIllustrations";
+import type { MapPin } from "@/components/map/MemoryMap";
 import { createClient } from "@/lib/supabase/client";
 import { toCapsule, type CapsuleRow } from "@/lib/supabase/capsules";
-import { Capsule } from "@/lib/types";
-import { MapPin, Plus } from "lucide-react";
+import { useGeolocation } from "@/lib/useGeolocation";
+import { distanceKm, formatDistance } from "@/lib/utils";
+import { MapPin as MapPinIcon, Plus } from "lucide-react";
 
 type Filter = "all" | "sealed" | "unlocked";
 
-// Pins are laid out with hardcoded percentages just to match the mockup.
-// Swap this whole component's map area for a real map SDK
-// (react-map-gl, @react-google-maps/api, etc.) once the backend supplies
-// real lat/lng per capsule.
-const PIN_POSITIONS = [
-  { left: "30%", top: "40%", color: "bg-coral" },
-  { left: "70%", top: "50%", color: "bg-sky-deep" },
-  { left: "50%", top: "20%", color: "bg-sun" },
-];
-
-function MapArea({
-  placeCapsules,
-  heightClass,
-  overlay,
-}: {
-  placeCapsules: Capsule[];
-  heightClass: string;
-  /** Shown centred over a dimmed map (used for empty states). */
-  overlay?: React.ReactNode;
-}) {
-  return (
-    <div
-      role="group"
-      aria-label="Map of place capsules"
-      className={`relative ${heightClass} rounded-2xl overflow-hidden bg-map-land`}
-    >
-      <div className="absolute left-0 right-0 top-[30%] h-2.5 bg-map-road" />
-      <div className="absolute left-0 right-0 top-[65%] h-2.5 bg-map-road" />
-      <div className="absolute top-0 bottom-0 left-[25%] w-2.5 bg-map-road" />
-      <div className="absolute top-0 bottom-0 left-[65%] w-2.5 bg-map-road" />
-      <div className="absolute left-[5%] top-[5%] w-[15%] h-[18%] bg-map-park rounded-sm" />
-      <div className="absolute left-[35%] top-[8%] w-[24%] h-[16%] bg-map-park rounded-sm" />
-      <div className="absolute left-[72%] top-[10%] w-[22%] h-[14%] bg-map-park rounded-sm" />
-      <div className="absolute left-[8%] top-[70%] w-[18%] h-[20%] bg-map-park rounded-sm" />
-      <div className="absolute left-[40%] top-[72%] w-[20%] h-[20%] bg-map-park rounded-sm" />
-
-      {placeCapsules.map((capsule, i) => {
-        const pos = PIN_POSITIONS[i % PIN_POSITIONS.length];
-        return (
-          <div
-            key={capsule.id}
-            role="img"
-            aria-label={`${capsule.title}, ${capsule.unlockLocation?.label}`}
-            className={`absolute w-6 h-6 rounded-tl-full rounded-tr-full rounded-bl-full ${pos.color}`}
-            style={{
-              left: pos.left,
-              top: pos.top,
-              transform: "translate(-50%, -100%) rotate(-45deg)",
-            }}
-          />
-        );
-      })}
-
-      {overlay && (
-        <div className="absolute inset-0 flex items-center justify-center bg-surface/75 backdrop-blur-[1px] overflow-y-auto">
-          {overlay}
-        </div>
-      )}
-    </div>
-  );
-}
+// Leaflet touches `window` on import, so the map can only load in the browser.
+const MemoryMap = dynamic(() => import("@/components/map/MemoryMap"), {
+  ssr: false,
+  loading: () => <div aria-hidden="true" className="h-full w-full bg-map-land animate-pulse" />,
+});
 
 export default function MapPage() {
   const { toast } = useToast();
   const [filter, setFilter] = useState<Filter>("all");
-  const [capsules, setCapsules] = useState<Capsule[]>([]);
+  const [pins, setPins] = useState<MapPin[] | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const mapBox = useRef<HTMLDivElement>(null);
+
+  // Optional: shows a "you are here" dot and distances. If location is denied
+  // or unsupported, `coords` stays null and the page simply omits them.
+  const { coords } = useGeolocation();
 
   useEffect(() => {
     let active = true;
-    const supabase = createClient();
-    supabase
+    createClient()
       .from("capsules")
       .select("*")
       .order("created_at", { ascending: false })
@@ -93,9 +45,24 @@ export default function MapPage() {
         if (!active) return;
         if (error) {
           toast(error.message, { variant: "error" });
+          setPins([]);
           return;
         }
-        setCapsules(((data ?? []) as CapsuleRow[]).map(toCapsule));
+        const next: MapPin[] = [];
+        for (const row of (data ?? []) as CapsuleRow[]) {
+          const c = toCapsule(row);
+          // Only capsules with real coordinates can be placed on a map.
+          if (c.unlockLocation?.lat === undefined || c.unlockLocation.lng === undefined) continue;
+          next.push({
+            id: c.id,
+            title: c.title,
+            label: c.unlockLocation.label,
+            status: c.status,
+            lat: c.unlockLocation.lat,
+            lng: c.unlockLocation.lng,
+          });
+        }
+        setPins(next);
       });
     return () => {
       active = false;
@@ -103,12 +70,20 @@ export default function MapPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const allPlaceCapsules = capsules.filter((c) => c.unlockLocation);
-  const hasPlaceCapsules = allPlaceCapsules.length > 0;
-  const placeCapsules = allPlaceCapsules.filter(
-    (c) => filter === "all" || c.status === filter
+  const loading = pins === null;
+  const allPins = useMemo(() => pins ?? [], [pins]);
+  const hasPlaceCapsules = allPins.length > 0;
+  const visiblePins = useMemo(
+    () => allPins.filter((p) => filter === "all" || p.status === filter),
+    [allPins, filter]
   );
-  const isEmpty = placeCapsules.length === 0;
+  const isEmpty = !loading && visiblePins.length === 0;
+
+  function selectFromList(id: string) {
+    setSelectedId(id);
+    // On phones the list sits below the map; bring the map back into view.
+    mapBox.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
 
   // Two flavours of empty: nothing exists at all (invite the first one), or
   // the current filter just hides everything (offer a way back).
@@ -125,7 +100,7 @@ export default function MapPage() {
       className="py-6"
       illustration={
         <span className="w-14 h-14 rounded-2xl bg-tint text-accent flex items-center justify-center">
-          <Icon as={MapPin} size="lg" />
+          <Icon as={MapPinIcon} size="lg" />
         </span>
       }
       title={filter === "sealed" ? "No sealed places" : "No opened places"}
@@ -155,35 +130,91 @@ export default function MapPage() {
           </div>
         )}
 
-        {/* Mobile: map only. Desktop: map + a list panel alongside it. */}
-        <div className="lg:hidden">
-          <MapArea placeCapsules={placeCapsules} heightClass="h-[340px]" overlay={isEmpty ? emptyOverlay : undefined} />
-        </div>
-
-        <div className="hidden lg:flex lg:gap-6">
-          <div className="flex-1">
-            <MapArea placeCapsules={placeCapsules} heightClass="h-[560px]" overlay={isEmpty ? emptyOverlay : undefined} />
-          </div>
-          {!isEmpty && (
-            <div className="w-72 shrink-0">
-              <p className="text-caption font-bold text-ink-soft uppercase tracking-wide mb-3">
-                {placeCapsules.length} place{placeCapsules.length === 1 ? "" : "s"}
+        {/* Mobile: map with the list underneath. Desktop: list beside the map. */}
+        <div className="lg:flex lg:gap-6">
+          <div className="lg:flex-1 min-w-0">
+            {/* isolate: Leaflet's panes use z-indexes up to 1000, which would
+                otherwise paint over the toast and the bottom nav. */}
+            <div
+              ref={mapBox}
+              role="group"
+              aria-label="Map of place capsules"
+              className="isolate relative h-[340px] lg:h-[560px] rounded-2xl overflow-hidden bg-map-land"
+            >
+              <MemoryMap
+                pins={visiblePins}
+                selectedId={selectedId}
+                onSelect={setSelectedId}
+                onClose={(id) => setSelectedId((cur) => (cur === id ? null : cur))}
+                userPosition={coords}
+              />
+              {isEmpty && (
+                <div className="absolute inset-0 z-[1100] flex items-center justify-center bg-surface/75 backdrop-blur-[1px] overflow-y-auto">
+                  {emptyOverlay}
+                </div>
+              )}
+            </div>
+            {hasPlaceCapsules && (
+              <p className="flex items-center gap-4 text-caption text-ink-soft mt-2">
+                <span className="flex items-center gap-1">
+                  <span aria-hidden="true" className="w-2.5 h-2.5 rounded-full bg-sky-deep" />
+                  Sealed
+                </span>
+                <span className="flex items-center gap-1">
+                  <span aria-hidden="true" className="w-2.5 h-2.5 rounded-full bg-coral" />
+                  Ready to open
+                </span>
+                {coords && (
+                  <span className="flex items-center gap-1">
+                    <span aria-hidden="true" className="w-2.5 h-2.5 rounded-full bg-[#2b7fff]" />
+                    You
+                  </span>
+                )}
               </p>
-              <div className="flex flex-col gap-3">
-                {placeCapsules.map((capsule) => (
-                  <div key={capsule.id} className="card flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-tint text-accent flex items-center justify-center flex-shrink-0">
-                      <Icon as={MapPin} size="sm" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-bold text-body text-ink truncate">{capsule.title}</p>
-                      <p className="text-caption text-ink-soft truncate">
-                        {capsule.unlockLocation?.label}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            )}
+          </div>
+
+          {!isEmpty && hasPlaceCapsules && (
+            <div className="mt-4 lg:mt-0 lg:w-72 shrink-0">
+              <p className="text-caption font-bold text-ink-soft uppercase tracking-wide mb-3">
+                {visiblePins.length} place{visiblePins.length === 1 ? "" : "s"}
+              </p>
+              <ul className="flex flex-col gap-3 lg:max-h-[520px] lg:overflow-y-auto">
+                {visiblePins.map((pin) => {
+                  const away =
+                    coords && pin.status === "sealed"
+                      ? formatDistance(distanceKm(coords, pin))
+                      : null;
+                  return (
+                    <li key={pin.id}>
+                      <button
+                        type="button"
+                        onClick={() => selectFromList(pin.id)}
+                        aria-pressed={selectedId === pin.id}
+                        className={`card w-full text-left flex items-center gap-3 transition-colors ${
+                          selectedId === pin.id ? "!border-accent" : ""
+                        }`}
+                      >
+                        <div
+                          className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                            pin.status === "unlocked" ? "bg-coral text-white" : "bg-tint text-accent"
+                          }`}
+                        >
+                          <Icon as={MapPinIcon} size="sm" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-bold text-body text-ink truncate">{pin.title}</p>
+                          <p className="text-caption text-ink-soft truncate">{pin.label}</p>
+                          <p className="text-caption text-ink-soft">
+                            {pin.status === "unlocked" ? "Ready to open" : "Sealed"}
+                            {away && ` · ${away} away`}
+                          </p>
+                        </div>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
           )}
         </div>
