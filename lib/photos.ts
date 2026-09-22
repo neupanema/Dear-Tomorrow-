@@ -1,10 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 // Private bucket (see supabase/schema.sql). Files live at
-// <user id>/<capsule id>.<ext>, and storage policies only let a user touch
-// the folder named after their own id.
+// <user id>/<capsule id>/<index>.<ext>, and storage policies only let a user
+// touch the folder named after their own id.
 export const PHOTO_BUCKET = "capsule-photos";
 export const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
+
+/** How many photos a capsule can carry before the app asks for a subscription. */
+export const FREE_PHOTO_LIMIT = 3;
 
 const EXTENSIONS: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -22,31 +25,46 @@ export function validatePhoto(file: File): string | null {
   return null;
 }
 
-/** Uploads the photo and returns its storage path (what goes in capsules.photo_path). */
-export async function uploadCapsulePhoto(
+/** Uploads every photo and returns their storage paths, in order. */
+export async function uploadCapsulePhotos(
   supabase: SupabaseClient,
   userId: string,
   capsuleId: string,
-  file: File
-): Promise<string> {
-  const path = `${userId}/${capsuleId}.${EXTENSIONS[file.type]}`;
-  const { error } = await supabase.storage
-    .from(PHOTO_BUCKET)
-    .upload(path, file, { contentType: file.type });
-  if (error) throw error;
-  return path;
+  files: File[]
+): Promise<string[]> {
+  const paths: string[] = [];
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const path = `${userId}/${capsuleId}/${i}.${EXTENSIONS[file.type]}`;
+    const { error } = await supabase.storage
+      .from(PHOTO_BUCKET)
+      .upload(path, file, { contentType: file.type });
+    if (error) {
+      // Best effort: don't leave the photos that did upload orphaned.
+      if (paths.length > 0) await removeCapsulePhotos(supabase, paths);
+      throw error;
+    }
+    paths.push(path);
+  }
+  return paths;
 }
 
 /** Best-effort cleanup, e.g. when the capsule row failed to save after the upload. */
-export async function removeCapsulePhoto(supabase: SupabaseClient, path: string): Promise<void> {
-  await supabase.storage.from(PHOTO_BUCKET).remove([path]);
+export async function removeCapsulePhotos(supabase: SupabaseClient, paths: string[]): Promise<void> {
+  if (paths.length === 0) return;
+  await supabase.storage.from(PHOTO_BUCKET).remove(paths);
 }
 
-/** A temporary link (the bucket is private). Null if it couldn't be created. */
-export async function getCapsulePhotoUrl(
+/** Temporary links (the bucket is private), same order as `paths`. A failed one is left out. */
+export async function getCapsulePhotoUrls(
   supabase: SupabaseClient,
-  path: string
-): Promise<string | null> {
-  const { data, error } = await supabase.storage.from(PHOTO_BUCKET).createSignedUrl(path, 60 * 60);
-  return error ? null : data.signedUrl;
+  paths: string[]
+): Promise<string[]> {
+  const urls = await Promise.all(
+    paths.map(async (path) => {
+      const { data, error } = await supabase.storage.from(PHOTO_BUCKET).createSignedUrl(path, 60 * 60);
+      return error ? null : data.signedUrl;
+    })
+  );
+  return urls.filter((url): url is string => url !== null);
 }

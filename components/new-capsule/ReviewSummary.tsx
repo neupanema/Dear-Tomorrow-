@@ -1,6 +1,6 @@
 interface ReviewSummaryProps {
   message: string;
-  hasPhoto: boolean;
+  photoCount: number;
   unlockLabel: string;
 }
 
@@ -17,7 +17,7 @@ function Row({ k, v }: { k: string; v: string }) {
 
 export default function ReviewSummary({
   message,
-  hasPhoto,
+  photoCount,
   unlockLabel,
 }: ReviewSummaryProps) {
   return (
@@ -26,7 +26,10 @@ export default function ReviewSummary({
         k="Message"
         v={message ? `"${message.slice(0, 28)}${message.length > 28 ? "..." : ""}"` : "—"}
       />
-      <Row k="Photo" v={hasPhoto ? "1 attached" : "None"} />
+      <Row
+        k="Photos"
+        v={photoCount === 0 ? "None" : `${photoCount} attached`}
+      />
       <Row k="Unlocks" v={unlockLabel} />
       <Row k="Visibility" v="Private" />
     </div>

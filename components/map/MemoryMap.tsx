@@ -6,6 +6,7 @@ import { useEffect, useRef } from "react";
 import { Circle, CircleMarker, MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import { pinIcon } from "@/components/map/pinIcon";
 import { UNLOCK_RADIUS_METERS } from "@/lib/checkLocationCapsules";
+import { daysUntil, formatCountdown } from "@/lib/utils";
 import type { CapsuleStatus } from "@/lib/types";
 
 export interface MapPin {
@@ -15,6 +16,8 @@ export interface MapPin {
   status: CapsuleStatus;
   lat: number;
   lng: number;
+  /** Set for date-and-place capsules — shown as a countdown in the popup and list. */
+  unlockDate?: string;
 }
 
 interface MemoryMapProps {
@@ -118,7 +121,11 @@ export default function MemoryMap({ pins, selectedId, onSelect, onClose, userPos
               <div className="font-bold text-body">{pin.title}</div>
               <div className="text-caption text-ink-soft mb-2">{pin.label}</div>
               <div className="text-caption mb-2">
-                {pin.status === "unlocked" ? "Ready to open" : "Sealed until you return here"}
+                {pin.status === "unlocked"
+                  ? "Ready to open"
+                  : pin.unlockDate && daysUntil(pin.unlockDate) > 0
+                  ? `${formatCountdown(pin.unlockDate)}, once you're here`
+                  : "Sealed until you return here"}
               </div>
               <Link href={`/capsule/${pin.id}`} className="!text-accent font-bold text-caption underline">
                 {pin.status === "unlocked" ? "Open capsule" : "View capsule"}

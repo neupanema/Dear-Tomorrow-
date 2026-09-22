@@ -3,6 +3,7 @@
 import { MotionConfig } from "framer-motion";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
 import { ToastProvider } from "@/components/ui/Toast";
+import { ProfileProvider } from "@/lib/useProfile";
 
 // Client-side providers that wrap the whole app. `reducedMotion="user"` makes
 // every framer-motion animation drop its movement (keeping fades) for people
@@ -11,7 +12,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <MotionConfig reducedMotion="user">
       <ThemeProvider>
-        <ToastProvider>{children}</ToastProvider>
+        <ToastProvider>
+          <ProfileProvider>{children}</ProfileProvider>
+        </ToastProvider>
       </ThemeProvider>
     </MotionConfig>
   );

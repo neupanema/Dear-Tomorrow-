@@ -4,7 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Lock, MapPin, Sparkles } from "lucide-react";
 import { Capsule } from "@/lib/types";
-import { formatDate } from "@/lib/utils";
+import { daysUntil, formatCountdown } from "@/lib/utils";
 import Icon from "@/components/ui/Icon";
 
 const MotionLink = motion.create(Link);
@@ -23,7 +23,14 @@ function subtitle(capsule: Capsule) {
   if (capsule.status === "unlocked") return "Ready to open now";
   if (capsule.unlockMethod === "place")
     return `Opens when I return to ${capsule.unlockLocation?.label ?? "this place"}`;
-  if (capsule.unlockDate) return `Opens ${formatDate(capsule.unlockDate)}`;
+  if (capsule.unlockDate) {
+    const place = capsule.unlockLocation?.label ?? "that place";
+    if (capsule.unlockMethod === "date-and-place" && daysUntil(capsule.unlockDate) <= 0) {
+      return `Waiting for you at ${place}`;
+    }
+    const countdown = formatCountdown(capsule.unlockDate);
+    return capsule.unlockMethod === "date-and-place" ? `${countdown} · at ${place}` : countdown;
+  }
   return "Sealed";
 }
 

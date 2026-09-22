@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Baloo_2, Nunito } from "next/font/google";
 import "leaflet/dist/leaflet.css";
 import "./globals.css";
@@ -23,6 +23,23 @@ const nunito = Nunito({
 export const metadata: Metadata = {
   title: "Dear Tomorrow",
   description: "Leave something for the person you'll become.",
+  appleWebApp: {
+    // No native app to link to — this just lets "Add to Home Screen" open
+    // in its own window instead of a Safari tab (see PWAInstallPrompt).
+    capable: true,
+    statusBarStyle: "default",
+    title: "Dear Tomorrow",
+  },
+};
+
+// Tints the browser's own chrome (address bar / status bar), matching
+// whichever theme is active — see the --sky and dark --cream tokens in
+// app/globals.css.
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#3FA9F5" },
+    { media: "(prefers-color-scheme: dark)", color: "#0D0F1A" },
+  ],
 };
 
 export default function RootLayout({

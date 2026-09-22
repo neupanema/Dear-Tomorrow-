@@ -13,6 +13,20 @@ export function daysAgo(iso: string): number {
   return Math.max(0, Math.round((now - created) / (1000 * 60 * 60 * 24)));
 }
 
+/** Whole days from now until `iso`. Zero or negative once it's passed. */
+export function daysUntil(iso: string): number {
+  const target = new Date(iso).getTime();
+  return Math.ceil((target - Date.now()) / (1000 * 60 * 60 * 24));
+}
+
+/** "Opens today" / "Opens tomorrow" / "Opens in 12 days" — for a compact list row. */
+export function formatCountdown(iso: string): string {
+  const days = daysUntil(iso);
+  if (days <= 0) return "Opens today";
+  if (days === 1) return "Opens tomorrow";
+  return `Opens in ${days} days`;
+}
+
 /** Haversine distance between two lat/lng points, in kilometers. */
 export function distanceKm(
   a: { lat: number; lng: number },

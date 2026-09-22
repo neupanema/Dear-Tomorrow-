@@ -13,7 +13,7 @@ import type { MapPin } from "@/components/map/MemoryMap";
 import { createClient } from "@/lib/supabase/client";
 import { toCapsule, type CapsuleRow } from "@/lib/supabase/capsules";
 import { useGeolocation } from "@/lib/useGeolocation";
-import { distanceKm, formatDistance } from "@/lib/utils";
+import { distanceKm, formatDistance, daysUntil, formatCountdown } from "@/lib/utils";
 import { MapPin as MapPinIcon, Plus } from "lucide-react";
 
 type Filter = "all" | "sealed" | "unlocked";
@@ -60,6 +60,7 @@ export default function MapPage() {
             status: c.status,
             lat: c.unlockLocation.lat,
             lng: c.unlockLocation.lng,
+            unlockDate: c.unlockMethod === "date-and-place" ? c.unlockDate : undefined,
           });
         }
         setPins(next);
@@ -185,6 +186,10 @@ export default function MapPage() {
                     coords && pin.status === "sealed"
                       ? formatDistance(distanceKm(coords, pin))
                       : null;
+                  const countdown =
+                    pin.status === "sealed" && pin.unlockDate && daysUntil(pin.unlockDate) > 0
+                      ? formatCountdown(pin.unlockDate)
+                      : null;
                   return (
                     <li key={pin.id}>
                       <button
@@ -206,7 +211,7 @@ export default function MapPage() {
                           <p className="font-bold text-body text-ink truncate">{pin.title}</p>
                           <p className="text-caption text-ink-soft truncate">{pin.label}</p>
                           <p className="text-caption text-ink-soft">
-                            {pin.status === "unlocked" ? "Ready to open" : "Sealed"}
+                            {pin.status === "unlocked" ? "Ready to open" : countdown ?? "Sealed"}
                             {away && ` · ${away} away`}
                           </p>
                         </div>

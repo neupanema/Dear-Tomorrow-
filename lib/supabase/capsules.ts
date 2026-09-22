@@ -13,7 +13,7 @@ export interface CapsuleRow {
   unlock_location_label: string | null;
   status: CapsuleStatus;
   unlocked_at: string | null;
-  photo_path: string | null;
+  photo_paths: string[] | null;
   created_at: string;
 }
 
@@ -48,7 +48,7 @@ export function toCapsule(row: CapsuleRow): Capsule {
     title: row.title,
     message: row.message,
     photoGradient: gradientFor(row.id),
-    photoPath: row.photo_path ?? undefined,
+    photoPaths: row.photo_paths ?? [],
     status: computeStatus(row),
     unlockMethod: row.unlock_method,
     unlockDate: row.unlock_date ?? undefined,

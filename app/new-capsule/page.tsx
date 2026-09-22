@@ -17,7 +17,7 @@ import { LocationPoint, UnlockMethod } from "@/lib/types";
 import { useToast } from "@/components/ui/Toast";
 import { formatDate } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
-import { removeCapsulePhoto, uploadCapsulePhoto } from "@/lib/photos";
+import { removeCapsulePhotos, uploadCapsulePhotos } from "@/lib/photos";
 import Icon from "@/components/ui/Icon";
 
 const TOTAL_STEPS = 4;
@@ -39,7 +39,7 @@ export default function NewCapsulePage() {
 
   // form state — all of this is what you'll POST to the backend once it exists
   const [message, setMessage] = useState("");
-  const [photo, setPhoto] = useState<File | null>(null);
+  const [photos, setPhotos] = useState<File[]>([]);
   const [method, setMethod] = useState<UnlockMethod>("date");
   const [date, setDate] = useState<Date | null>(null);
   const [locationPoint, setLocationPoint] = useState<LocationPoint | null>(null);
@@ -95,16 +95,16 @@ export default function NewCapsulePage() {
     const usesDate = method === "date" || method === "date-and-place";
     const usesPlace = method === "place" || method === "date-and-place";
 
-    // The photo is stored under the capsule's id, so pick the id up front and
+    // Photos are stored under the capsule's id, so pick the id up front and
     // upload before the row exists. A failed upload stops the seal (rather
-    // than silently saving the capsule without its photo).
+    // than silently saving the capsule without its photos).
     const capsuleId = crypto.randomUUID();
-    let photoPath: string | null = null;
-    if (photo) {
+    let photoPaths: string[] = [];
+    if (photos.length > 0) {
       try {
-        photoPath = await uploadCapsulePhoto(supabase, user.id, capsuleId, photo);
+        photoPaths = await uploadCapsulePhotos(supabase, user.id, capsuleId, photos);
       } catch (err) {
-        toast(`Couldn't upload your photo: ${(err as Error).message}`, { variant: "error" });
+        toast(`Couldn't upload your photos: ${(err as Error).message}`, { variant: "error" });
         setSaving(false);
         return;
       }
@@ -116,7 +116,7 @@ export default function NewCapsulePage() {
       id: capsuleId,
       user_id: user.id,
       title,
-      photo_path: photoPath,
+      photo_paths: photoPaths,
       message,
       unlock_method: method,
       status: "sealed",
@@ -133,8 +133,8 @@ export default function NewCapsulePage() {
     setSaving(false);
 
     if (error) {
-      // Don't leave an orphaned upload behind for a capsule that doesn't exist.
-      if (photoPath) void removeCapsulePhoto(supabase, photoPath);
+      // Don't leave orphaned uploads behind for a capsule that doesn't exist.
+      if (photoPaths.length > 0) void removeCapsulePhotos(supabase, photoPaths);
       toast(error.message, { variant: "error" });
       return;
     }
@@ -256,8 +256,8 @@ export default function NewCapsulePage() {
                     rows={4}
                     className="w-full bg-surface border-2 border-dashed border-line-strong rounded-2xl p-3 text-lead text-ink resize-none focus:border-accent"
                   />
-                  <p className="field-label">Photo</p>
-                  <PhotoDrop onChange={setPhoto} />
+                  <p className="field-label">Photos</p>
+                  <PhotoDrop value={photos} onChange={setPhotos} />
                 </div>
               )}
 
@@ -308,7 +308,7 @@ export default function NewCapsulePage() {
                   <div className="h-16 rounded-2xl mb-3 bg-gradient-to-br from-sun via-coral to-sky" />
                   <ReviewSummary
                     message={message}
-                    hasPhoto={!!photo}
+                    photoCount={photos.length}
                     unlockLabel={unlockLabel}
                   />
                 </div>

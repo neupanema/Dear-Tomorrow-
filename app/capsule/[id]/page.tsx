@@ -6,11 +6,13 @@ import { notFound, useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowRight, ChevronLeft, Lock } from "lucide-react";
 import UnlockOrb from "@/components/capsules/UnlockOrb";
+import CountdownRing from "@/components/capsules/CountdownRing";
+import PhotoGallery from "@/components/capsules/PhotoGallery";
 import { createClient } from "@/lib/supabase/client";
 import { toCapsule, type CapsuleRow } from "@/lib/supabase/capsules";
 import { Capsule } from "@/lib/types";
-import { getCapsulePhotoUrl } from "@/lib/photos";
-import { formatDate, daysAgo } from "@/lib/utils";
+import { getCapsulePhotoUrls } from "@/lib/photos";
+import { daysUntil, daysAgo, formatDate } from "@/lib/utils";
 import Icon from "@/components/ui/Icon";
 
 export default function CapsuleDetailPage() {
@@ -22,10 +24,11 @@ export default function CapsuleDetailPage() {
   const [capsule, setCapsule] = useState<Capsule | null | undefined>(undefined);
   // idle: waiting for a tap -> opening: crack + burst -> revealed: the message
   const [phase, setPhase] = useState<"idle" | "opening" | "revealed">("idle");
-  // Photos are in a private bucket, so show a short-lived signed link.
-  // idle: not asked for yet / no photo -> loading -> a URL, or "error"
-  const [photo, setPhoto] = useState<{ state: "loading" | "error" | "ready"; url?: string }>({
+  // Photos are in a private bucket, so show short-lived signed links.
+  // loading -> some urls (ready), or none even though photos exist (error)
+  const [photos, setPhotos] = useState<{ state: "loading" | "error" | "ready"; urls: string[] }>({
     state: "loading",
+    urls: [],
   });
   const handleOpen = useCallback(() => setPhase("opening"), []);
   const handleOpened = useCallback(() => setPhase("revealed"), []);
@@ -47,17 +50,18 @@ export default function CapsuleDetailPage() {
     };
   }, [id]);
 
-  const photoPath = capsule?.status === "unlocked" ? capsule.photoPath : undefined;
+  const photoPaths = capsule?.status === "unlocked" ? capsule.photoPaths : [];
   useEffect(() => {
-    if (!photoPath) return;
+    if (photoPaths.length === 0) return;
     let active = true;
-    getCapsulePhotoUrl(createClient(), photoPath).then((url) => {
-      if (active) setPhoto(url ? { state: "ready", url } : { state: "error" });
+    getCapsulePhotoUrls(createClient(), photoPaths).then((urls) => {
+      if (active) setPhotos({ state: urls.length > 0 ? "ready" : "error", urls });
     });
     return () => {
       active = false;
     };
-  }, [photoPath]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [photoPaths.join(",")]);
 
   // The tapped button disappears when the message is revealed, so hand focus
   // to the new heading rather than dropping keyboard/screen-reader users on <body>.
@@ -71,6 +75,22 @@ export default function CapsuleDetailPage() {
 
   // --- sealed: nothing to tap, it opens itself when the condition is met ---
   if (capsule.status === "sealed") {
+    // A date to count down to, unless this is a place-only capsule.
+    const hasCountdown = capsule.unlockMethod !== "place" && !!capsule.unlockDate;
+    const dateReached = capsule.unlockDate ? daysUntil(capsule.unlockDate) <= 0 : false;
+    const place = capsule.unlockLocation?.label;
+
+    const footer =
+      capsule.unlockMethod === "place"
+        ? `Opens when I return to ${place}`
+        : capsule.unlockMethod === "date-and-place"
+        ? dateReached
+          ? `Just waiting for you to return to ${place}`
+          : `And when I return to ${place}`
+        : capsule.unlockDate
+        ? `Opens ${formatDate(capsule.unlockDate)}`
+        : "";
+
     return (
       <main data-on-sky="" className="min-h-screen bg-hero flex flex-col items-center justify-center text-white text-center px-8 relative">
         <Link
@@ -80,13 +100,23 @@ export default function CapsuleDetailPage() {
         >
           <Icon as={ChevronLeft} size="md" />
         </Link>
-        <motion.div
-          animate={{ y: [0, -6, 0] }}
-          transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
-          className="w-[92px] h-[92px] lg:w-32 lg:h-32 rounded-full bg-white/15 border-2 border-white/40 flex items-center justify-center mb-4 lg:mb-6"
-        >
-          <Icon as={Lock} size="xl" className="lg:w-10 lg:h-10" />
-        </motion.div>
+        {hasCountdown ? (
+          <motion.div
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+            className="mb-4 lg:mb-6"
+          >
+            <CountdownRing createdAt={capsule.createdAt} unlockDate={capsule.unlockDate!} />
+          </motion.div>
+        ) : (
+          <motion.div
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+            className="w-[92px] h-[92px] lg:w-32 lg:h-32 rounded-full bg-white/15 border-2 border-white/40 flex items-center justify-center mb-4 lg:mb-6"
+          >
+            <Icon as={Lock} size="xl" className="lg:w-10 lg:h-10" />
+          </motion.div>
+        )}
         <h1 className="font-display text-heading lg:text-title mb-2">Sealed</h1>
         <p className="text-body lg:text-lead mb-4">
           Something from your past
@@ -94,9 +124,7 @@ export default function CapsuleDetailPage() {
           is waiting for you.
         </p>
         <div className="bg-black/20 px-4 py-2 rounded-full text-caption lg:text-body font-bold">
-          {capsule.unlockMethod === "place"
-            ? `Opens when I return to ${capsule.unlockLocation?.label}`
-            : `Opens ${capsule.unlockDate ? formatDate(capsule.unlockDate) : ""}`}
+          {footer}
         </div>
       </main>
     );
@@ -170,26 +198,25 @@ export default function CapsuleDetailPage() {
           </motion.h1>
         </div>
         <div className="flex-1 p-4 lg:p-8 bg-surface">
-          {capsule.photoPath && (
+          {capsule.photoPaths.length > 0 && (
             <motion.div
               initial={{ opacity: 0, scale: 0.92 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.3, type: "spring", stiffness: 200, damping: 20 }}
-              className="h-56 lg:h-72 rounded-2xl mb-3 overflow-hidden bg-tint flex items-center justify-center"
             >
-              {photo.state === "ready" ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={photo.url}
-                  alt="Your photo from that day"
-                  className="h-full w-full object-cover"
-                />
-              ) : photo.state === "error" ? (
-                <p className="text-caption text-ink-soft px-4 text-center">
-                  Couldn&apos;t load your photo. Try reopening this capsule.
-                </p>
+              {photos.state === "ready" ? (
+                <PhotoGallery urls={photos.urls} />
+              ) : photos.state === "error" ? (
+                <div className="h-56 lg:h-72 rounded-2xl mb-3 bg-tint flex items-center justify-center">
+                  <p className="text-caption text-ink-soft px-4 text-center">
+                    Couldn&apos;t load your photos. Try reopening this capsule.
+                  </p>
+                </div>
               ) : (
-                <div aria-hidden="true" className="h-full w-full animate-pulse bg-line" />
+                <div
+                  aria-hidden="true"
+                  className="h-56 lg:h-72 rounded-2xl mb-3 animate-pulse bg-line"
+                />
               )}
             </motion.div>
           )}

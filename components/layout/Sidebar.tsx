@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Home, Map, Settings, Plus } from "lucide-react";
 import BrandMark from "@/components/ui/BrandMark";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import Avatar from "@/components/ui/Avatar";
 import Icon from "@/components/ui/Icon";
 import { createClient } from "@/lib/supabase/client";
 
@@ -60,9 +61,7 @@ export default function Sidebar() {
       </nav>
 
       <div className="mt-auto flex items-center gap-3 px-2 pt-6 border-t border-line">
-        <div className="w-8 h-8 rounded-full bg-accent text-on-accent flex items-center justify-center font-display text-body">
-          {email ? email[0].toUpperCase() : "?"}
-        </div>
+        <Avatar email={email} size="sm" />
         <div>
           <p className="text-body font-bold text-ink truncate max-w-[120px]">
             {email ?? "Loading..."}

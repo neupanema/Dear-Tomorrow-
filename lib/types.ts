@@ -12,8 +12,8 @@ export interface Capsule {
   message: string;
   /** Tailwind gradient classes standing in for a real uploaded photo. */
   photoGradient: string;
-  /** Storage path of the uploaded photo, if one was attached. */
-  photoPath?: string;
+  /** Storage paths of the uploaded photos (up to FREE_PHOTO_LIMIT — see lib/photos.ts). */
+  photoPaths: string[];
   status: CapsuleStatus;
   unlockMethod: UnlockMethod;
   unlockDate?: string; // ISO date string

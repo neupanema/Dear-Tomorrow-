@@ -1,13 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, Lock, LogOut, MapPin, Moon, Settings as SettingsIcon, Video, ChevronRight } from "lucide-react";
+import { Bell, Camera, Loader2, Lock, LogOut, MapPin, Moon, Settings as SettingsIcon, Video, ChevronRight } from "lucide-react";
 import TopBar from "@/components/layout/TopBar";
 import AppShell from "@/components/layout/AppShell";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import Avatar from "@/components/ui/Avatar";
 import { useToast } from "@/components/ui/Toast";
 import { createClient } from "@/lib/supabase/client";
+import { useProfile } from "@/lib/useProfile";
+import { removeAvatar, uploadAvatar } from "@/lib/profile";
+import { validatePhoto } from "@/lib/photos";
 import Icon from "@/components/ui/Icon";
 
 const ITEMS = [
@@ -21,12 +25,17 @@ const ITEMS = [
 export default function SettingsPage() {
   const { toast } = useToast();
   const router = useRouter();
+  const { avatarUrl, refresh: refreshProfile } = useProfile();
   const [email, setEmail] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [savingAvatar, setSavingAvatar] = useState(false);
+  const avatarInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
       setEmail(data.user?.email ?? null);
+      setUserId(data.user?.id ?? null);
     });
   }, []);
 
@@ -37,6 +46,40 @@ export default function SettingsPage() {
     router.refresh();
   }
 
+  async function handleAvatarFile(file: File | null) {
+    if (!file || !userId || savingAvatar) return;
+    const problem = validatePhoto(file);
+    if (problem) {
+      toast(problem, { variant: "error" });
+      return;
+    }
+    setSavingAvatar(true);
+    try {
+      await uploadAvatar(createClient(), userId, file);
+      await refreshProfile();
+      toast("Profile photo updated");
+    } catch (err) {
+      toast((err as Error).message, { variant: "error" });
+    } finally {
+      setSavingAvatar(false);
+      if (avatarInput.current) avatarInput.current.value = "";
+    }
+  }
+
+  async function handleRemoveAvatar() {
+    if (!userId || savingAvatar) return;
+    setSavingAvatar(true);
+    try {
+      await removeAvatar(createClient(), userId);
+      await refreshProfile();
+      toast("Profile photo removed", { variant: "info" });
+    } catch (err) {
+      toast((err as Error).message, { variant: "error" });
+    } finally {
+      setSavingAvatar(false);
+    }
+  }
+
   return (
     <AppShell>
       <TopBar title="Settings" variant="plain" />
@@ -44,13 +87,41 @@ export default function SettingsPage() {
       <div className="flex-1 p-4 pb-24 lg:px-10 lg:py-8 lg:pb-16">
         <div className="lg:grid lg:grid-cols-[280px_1fr] lg:gap-8 lg:items-start">
           <div className="card flex items-center gap-3 mb-4 lg:mb-0 lg:flex-col lg:text-center lg:py-8">
-            <div className="w-11 h-11 lg:w-16 lg:h-16 rounded-full bg-accent text-on-accent flex items-center justify-center font-display text-lead lg:text-heading">
-              {email ? email[0].toUpperCase() : "?"}
+            <div className="relative">
+              <Avatar email={email} size="lg" />
+              <button
+                type="button"
+                onClick={() => avatarInput.current?.click()}
+                disabled={savingAvatar}
+                aria-label={avatarUrl ? "Change profile photo" : "Add profile photo"}
+                className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-surface border-2 border-cream text-accent flex items-center justify-center shadow-md disabled:opacity-60"
+              >
+                <Icon as={savingAvatar ? Loader2 : Camera} size="sm" className={savingAvatar ? "animate-spin" : undefined} />
+              </button>
+              <input
+                ref={avatarInput}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                aria-hidden="true"
+                tabIndex={-1}
+                onChange={(e) => handleAvatarFile(e.target.files?.[0] ?? null)}
+              />
             </div>
             <div>
               <p className="font-bold text-lead text-ink lg:mt-3">
                 {email ?? "Loading..."}
               </p>
+              {avatarUrl && (
+                <button
+                  type="button"
+                  onClick={handleRemoveAvatar}
+                  disabled={savingAvatar}
+                  className="text-caption text-ink-soft underline mt-1 disabled:opacity-60"
+                >
+                  Remove photo
+                </button>
+              )}
             </div>
           </div>
 
