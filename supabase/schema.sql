@@ -109,6 +109,23 @@ create table if not exists public.profiles (
   updated_at timestamptz not null default now()
 );
 
+-- An earlier version of this table (created directly in the dashboard, before
+-- this file existed) had `first_name`/`last_name` columns marked `not null`.
+-- Nothing in the app writes to them — first/last name only ever lives in
+-- auth.users' metadata, set at sign-up — so any insert that didn't happen to
+-- carry them (e.g. the avatar upload upsert) failed with "null value in
+-- column first_name violates not-null constraint". Relax them if present.
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'profiles' and column_name = 'first_name'
+  ) then
+    alter table public.profiles alter column first_name drop not null;
+    alter table public.profiles alter column last_name drop not null;
+  end if;
+end $$;
+
 alter table public.profiles enable row level security;
 
 drop policy if exists "Users can view their own profile" on public.profiles;
