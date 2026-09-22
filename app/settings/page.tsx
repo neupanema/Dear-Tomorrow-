@@ -2,11 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, Camera, Loader2, Lock, LogOut, MapPin, Moon, Settings as SettingsIcon, Video, ChevronRight } from "lucide-react";
+import { Bell, Camera, Loader2, Lock, LogOut, MapPin, Moon, Settings as SettingsIcon, Trash2, Video, ChevronRight } from "lucide-react";
 import TopBar from "@/components/layout/TopBar";
 import AppShell from "@/components/layout/AppShell";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import Avatar from "@/components/ui/Avatar";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/ui/Toast";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/useProfile";
@@ -30,6 +31,8 @@ export default function SettingsPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [savingAvatar, setSavingAvatar] = useState(false);
   const avatarInput = useRef<HTMLInputElement>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -77,6 +80,25 @@ export default function SettingsPage() {
       toast((err as Error).message, { variant: "error" });
     } finally {
       setSavingAvatar(false);
+    }
+  }
+
+  async function handleDeleteAccount() {
+    if (deleting) return;
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/account", { method: "DELETE" });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || "Something went wrong. Please try again.");
+
+      // The account (and its session) is gone server-side; clear it locally too.
+      await createClient().auth.signOut();
+      router.push("/sign-in");
+      router.refresh();
+      toast("Your account has been deleted");
+    } catch (err) {
+      toast((err as Error).message, { variant: "error" });
+      setDeleting(false);
     }
   }
 
@@ -163,9 +185,34 @@ export default function SettingsPage() {
               </span>
               Sign out
             </button>
+
+            <button
+              type="button"
+              onClick={() => setShowDeleteDialog(true)}
+              className="w-full px-3 py-3 lg:py-4 mb-2 lg:mb-0 lg:col-span-2 flex items-center justify-center gap-2 text-caption font-bold text-ink-soft"
+            >
+              <Icon as={Trash2} size="sm" />
+              Delete account
+            </button>
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={showDeleteDialog}
+        title="Delete your account?"
+        body={
+          <>
+            This permanently deletes your account, every capsule you&apos;ve sealed or opened,
+            and any photos attached to them. There&apos;s no undoing this.
+          </>
+        }
+        confirmLabel="Delete my account"
+        confirmWord="DELETE"
+        loading={deleting}
+        onConfirm={handleDeleteAccount}
+        onClose={() => !deleting && setShowDeleteDialog(false)}
+      />
     </AppShell>
   );
 }

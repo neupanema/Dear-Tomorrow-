@@ -7,7 +7,11 @@ import { avatarUrl, getProfile } from "@/lib/profile";
 interface ProfileContextValue {
   /** null once loaded with no picture set; undefined while loading. */
   avatarUrl: string | null | undefined;
-  /** Re-reads the profile row — call after uploading or removing a photo. */
+  /**
+   * Re-reads the profile row — call after uploading or removing a photo.
+   * Throws on a real failure, so the caller (e.g. Settings) can show why the
+   * change didn't take, rather than it failing invisibly.
+   */
   refresh: () => Promise<void>;
 }
 
@@ -35,7 +39,11 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    void refresh();
+    // Swallowed here (not in `refresh` itself): this first, automatic load
+    // should degrade to the fallback initial quietly, but an explicit
+    // refresh() call after an upload should still throw so that caller can
+    // show what went wrong.
+    void refresh().catch(() => {});
   }, [refresh]);
 
   const value = useMemo(() => ({ avatarUrl: url, refresh }), [url, refresh]);

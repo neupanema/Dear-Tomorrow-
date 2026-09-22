@@ -11,13 +11,17 @@ export interface Profile {
   updatedAt: number;
 }
 
-/** null if the user has never set one up (no row yet, which is normal). */
+/** null if the user has never set one up (no row yet, which is normal — not an error). */
 export async function getProfile(supabase: SupabaseClient, userId: string): Promise<Profile | null> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("profiles")
     .select("avatar_path, updated_at")
     .eq("id", userId)
     .maybeSingle();
+  // A real error (missing table, RLS reject, ...) is not the same as "no row
+  // yet" — surface it instead of quietly showing no picture, which is what
+  // made a previously-broken profiles table look like "the upload didn't work".
+  if (error) throw error;
   if (!data) return null;
   return { avatarPath: data.avatar_path, updatedAt: new Date(data.updated_at).getTime() };
 }
@@ -33,15 +37,23 @@ export async function uploadAvatar(
     .from(AVATAR_BUCKET)
     .upload(path, file, { contentType: file.type, upsert: true });
   if (error) throw error;
-  await supabase.from("profiles").upsert({ id: userId, avatar_path: path, updated_at: new Date().toISOString() });
+  // The upload can succeed while this fails (bad RLS, stale schema cache, ...)
+  // — if it's not checked, the photo sits in storage with nothing pointing at
+  // it, and the caller has no idea anything went wrong.
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .upsert({ id: userId, avatar_path: path, updated_at: new Date().toISOString() });
+  if (profileError) throw profileError;
   return path;
 }
 
 export async function removeAvatar(supabase: SupabaseClient, userId: string): Promise<void> {
-  await supabase.storage.from(AVATAR_BUCKET).remove([`${userId}/avatar`]);
-  await supabase
+  const { error } = await supabase.storage.from(AVATAR_BUCKET).remove([`${userId}/avatar`]);
+  if (error) throw error;
+  const { error: profileError } = await supabase
     .from("profiles")
     .upsert({ id: userId, avatar_path: null, updated_at: new Date().toISOString() });
+  if (profileError) throw profileError;
 }
 
 export function avatarUrl(supabase: SupabaseClient, profile: Profile): string | null {

@@ -126,6 +126,12 @@ create policy "Users can update their own profile"
   on public.profiles for update
   using (auth.uid() = id);
 
+-- Without this, PostgREST can keep serving requests against its last-known
+-- schema and not know `profiles` exists yet — every read/write to it then
+-- fails with "Could not find the table 'public.profiles' in the schema
+-- cache", which is exactly what silently broke avatar uploads.
+notify pgrst, 'reload schema';
+
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
   'avatars',
