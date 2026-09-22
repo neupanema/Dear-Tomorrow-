@@ -19,11 +19,16 @@ const NAV = [
 export default function Sidebar() {
   const pathname = usePathname();
   const [email, setEmail] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
       setEmail(data.user?.email ?? null);
+      // Set at sign-up (see app/sign-up/page.tsx) — never edited elsewhere.
+      const meta = data.user?.user_metadata as { first_name?: string; last_name?: string } | undefined;
+      const name = [meta?.first_name, meta?.last_name].filter(Boolean).join(" ").trim();
+      setDisplayName(name || null);
     });
   }, []);
 
@@ -64,7 +69,7 @@ export default function Sidebar() {
         <Avatar email={email} size="sm" />
         <div>
           <p className="text-body font-bold text-ink truncate max-w-[120px]">
-            {email ?? "Loading..."}
+            {displayName ?? email ?? "Loading..."}
           </p>
         </div>
         <ThemeToggle className="ml-auto" />

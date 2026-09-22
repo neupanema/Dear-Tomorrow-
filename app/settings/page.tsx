@@ -28,6 +28,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const { avatarUrl, refresh: refreshProfile } = useProfile();
   const [email, setEmail] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [savingAvatar, setSavingAvatar] = useState(false);
   const avatarInput = useRef<HTMLInputElement>(null);
@@ -39,6 +40,10 @@ export default function SettingsPage() {
     supabase.auth.getUser().then(({ data }) => {
       setEmail(data.user?.email ?? null);
       setUserId(data.user?.id ?? null);
+      // Set at sign-up (see app/sign-up/page.tsx) — never edited elsewhere.
+      const meta = data.user?.user_metadata as { first_name?: string; last_name?: string } | undefined;
+      const name = [meta?.first_name, meta?.last_name].filter(Boolean).join(" ").trim();
+      setDisplayName(name || null);
     });
   }, []);
 
@@ -132,7 +137,7 @@ export default function SettingsPage() {
             </div>
             <div>
               <p className="font-bold text-lead text-ink lg:mt-3">
-                {email ?? "Loading..."}
+                {displayName ?? email ?? "Loading..."}
               </p>
               {avatarUrl && (
                 <button
