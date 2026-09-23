@@ -49,6 +49,25 @@ export async function uploadCapsulePhotos(
   return paths;
 }
 
+/**
+ * Uploads a single photo appended during an edit. Named with a UUID (not a
+ * position index) so it can never collide with the `0.jpg`/`1.jpg`/...
+ * paths `uploadCapsulePhotos` gave the capsule's original photos.
+ */
+export async function uploadCapsulePhoto(
+  supabase: SupabaseClient,
+  userId: string,
+  capsuleId: string,
+  file: File
+): Promise<string> {
+  const path = `${userId}/${capsuleId}/${crypto.randomUUID()}.${EXTENSIONS[file.type]}`;
+  const { error } = await supabase.storage
+    .from(PHOTO_BUCKET)
+    .upload(path, file, { contentType: file.type });
+  if (error) throw error;
+  return path;
+}
+
 /** Best-effort cleanup, e.g. when the capsule row failed to save after the upload. */
 export async function removeCapsulePhotos(supabase: SupabaseClient, paths: string[]): Promise<void> {
   if (paths.length === 0) return;

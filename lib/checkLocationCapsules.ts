@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { distanceMeters } from "@/lib/utils";
 
-/** How close (in meters) the user has to be to a capsule's spot to open it. */
+/** Default radius (meters) offered when creating a place capsule — each capsule can override it (see unlock_radius_meters). */
 export const UNLOCK_RADIUS_METERS = 300;
 
 export interface UnlockedCapsule {
@@ -16,6 +16,7 @@ interface PlaceCapsuleRow {
   unlock_date: string | null;
   unlock_lat: number | null;
   unlock_lng: number | null;
+  unlock_radius_meters: number;
 }
 
 /**
@@ -24,6 +25,12 @@ interface PlaceCapsuleRow {
  * - "date-and-place": same, and unlock_date must already have passed.
  * Returns the capsules that were unlocked by this call (empty if none).
  * Throws on a Supabase error so the caller decides whether to surface it.
+ *
+ * No `user_id` filter here — relies entirely on RLS for which capsules are
+ * visible. Since the capsules SELECT policy also grants accepted share
+ * recipients read access (see capsule_shares in schema.sql), a shared
+ * capsule can be unlocked by whichever invited person gets there first — a
+ * deliberate "gift" behavior, not an oversight.
  */
 export async function checkLocationCapsules(current: {
   lat: number;
@@ -33,7 +40,7 @@ export async function checkLocationCapsules(current: {
 
   const { data, error } = await supabase
     .from("capsules")
-    .select("id, title, unlock_method, unlock_date, unlock_lat, unlock_lng")
+    .select("id, title, unlock_method, unlock_date, unlock_lat, unlock_lng, unlock_radius_meters")
     .eq("status", "sealed")
     .in("unlock_method", ["place", "date-and-place"]);
   if (error) throw error;
@@ -46,7 +53,7 @@ export async function checkLocationCapsules(current: {
         if (!c.unlock_date || new Date(c.unlock_date).getTime() > now) return false;
       }
       const meters = distanceMeters(current, { lat: c.unlock_lat, lng: c.unlock_lng });
-      return meters <= UNLOCK_RADIUS_METERS;
+      return meters <= c.unlock_radius_meters;
     })
     .map((c) => c.id);
 

@@ -5,17 +5,23 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 // policies still only let a user write inside their own folder.
 export const AVATAR_BUCKET = "avatars";
 
+/** Only the lead times the notifications settings UI offers (see profiles_reminder_lead_hours_valid). */
+export const REMINDER_LEAD_HOURS = [1, 24, 72, 168] as const;
+export type ReminderLeadHours = (typeof REMINDER_LEAD_HOURS)[number];
+
 export interface Profile {
   avatarPath: string | null;
   /** Epoch ms of the last change — append as a query string to bust the CDN cache. */
   updatedAt: number;
+  emailRemindersEnabled: boolean;
+  reminderLeadHours: ReminderLeadHours;
 }
 
 /** null if the user has never set one up (no row yet, which is normal — not an error). */
 export async function getProfile(supabase: SupabaseClient, userId: string): Promise<Profile | null> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("avatar_path, updated_at")
+    .select("avatar_path, updated_at, email_reminders_enabled, reminder_lead_hours")
     .eq("id", userId)
     .maybeSingle();
   // A real error (missing table, RLS reject, ...) is not the same as "no row
@@ -23,7 +29,27 @@ export async function getProfile(supabase: SupabaseClient, userId: string): Prom
   // made a previously-broken profiles table look like "the upload didn't work".
   if (error) throw error;
   if (!data) return null;
-  return { avatarPath: data.avatar_path, updatedAt: new Date(data.updated_at).getTime() };
+  return {
+    avatarPath: data.avatar_path,
+    updatedAt: new Date(data.updated_at).getTime(),
+    emailRemindersEnabled: data.email_reminders_enabled,
+    reminderLeadHours: data.reminder_lead_hours,
+  };
+}
+
+/** Upserts notification preferences — same shape as uploadAvatar's profile write. */
+export async function updateNotificationPrefs(
+  supabase: SupabaseClient,
+  userId: string,
+  prefs: { emailRemindersEnabled: boolean; reminderLeadHours: ReminderLeadHours }
+): Promise<void> {
+  const { error } = await supabase.from("profiles").upsert({
+    id: userId,
+    email_reminders_enabled: prefs.emailRemindersEnabled,
+    reminder_lead_hours: prefs.reminderLeadHours,
+    updated_at: new Date().toISOString(),
+  });
+  if (error) throw error;
 }
 
 /** One object per user (upsert), so re-uploading replaces the old picture instead of piling up. */

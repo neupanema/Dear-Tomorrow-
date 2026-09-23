@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Map, Settings, Plus } from "lucide-react";
+import { Gift, Home, Map, Settings, Plus } from "lucide-react";
 import BrandMark from "@/components/ui/BrandMark";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import Avatar from "@/components/ui/Avatar";
@@ -13,6 +13,7 @@ import { createClient } from "@/lib/supabase/client";
 const NAV = [
   { href: "/dashboard", label: "Your capsules", icon: Home },
   { href: "/map", label: "Map of memories", icon: Map },
+  { href: "/shared", label: "Shared with you", icon: Gift },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

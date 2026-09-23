@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Map, Settings } from "lucide-react";
+import { Gift, Home, Map, Settings } from "lucide-react";
 import Icon from "@/components/ui/Icon";
 
 const TABS = [
   { href: "/dashboard", label: "Capsules", icon: Home },
   { href: "/map", label: "Map", icon: Map },
+  { href: "/shared", label: "Shared", icon: Gift },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

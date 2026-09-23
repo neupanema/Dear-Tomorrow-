@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { Circle, CircleMarker, MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import { pinIcon } from "@/components/map/pinIcon";
-import { UNLOCK_RADIUS_METERS } from "@/lib/checkLocationCapsules";
 import { daysUntil, formatCountdown } from "@/lib/utils";
 import type { CapsuleStatus } from "@/lib/types";
 
@@ -18,6 +17,8 @@ export interface MapPin {
   lng: number;
   /** Set for date-and-place capsules — shown as a countdown in the popup and list. */
   unlockDate?: string;
+  /** How close you need to be for this capsule to unlock (unlock_radius_meters). */
+  unlockRadiusMeters: number;
 }
 
 interface MemoryMapProps {
@@ -86,7 +87,7 @@ export default function MemoryMap({ pins, selectedId, onSelect, onClose, userPos
       {selected?.status === "sealed" && (
         <Circle
           center={[selected.lat, selected.lng]}
-          radius={UNLOCK_RADIUS_METERS}
+          radius={selected.unlockRadiusMeters}
           pathOptions={{ className: "dt-radius", weight: 2, fillOpacity: 0.15 }}
         />
       )}

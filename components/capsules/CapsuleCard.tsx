@@ -2,22 +2,13 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Lock, MapPin, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { Capsule } from "@/lib/types";
 import { daysUntil, formatCountdown } from "@/lib/utils";
 import Icon from "@/components/ui/Icon";
+import CoverArt from "@/components/capsules/CoverArt";
 
 const MotionLink = motion.create(Link);
-
-function badge(capsule: Capsule) {
-  if (capsule.status === "unlocked") {
-    return { icon: Sparkles, bg: "bg-coral" };
-  }
-  if (capsule.unlockMethod === "place") {
-    return { icon: MapPin, bg: "bg-sun text-on-sun" };
-  }
-  return { icon: Lock, bg: "bg-sky-deep" };
-}
 
 function subtitle(capsule: Capsule) {
   if (capsule.status === "unlocked") return "Ready to open now";
@@ -53,8 +44,6 @@ export default function CapsuleCard({
   capsule: Capsule;
   index?: number;
 }) {
-  const { icon: Glyph, bg } = badge(capsule);
-
   return (
     <MotionLink
       href={`/capsule/${capsule.id}`} // sealed capsules also route here and show the waiting screen
@@ -68,18 +57,20 @@ export default function CapsuleCard({
       whileTap={{ scale: 0.98 }}
       className="card flex items-center gap-3 mb-3 lg:mb-0 lg:p-4 transition-colors hover:border-accent"
     >
-      <div
-        className={`w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0 ${bg}`}
-      >
-        <Icon as={Glyph} size="sm" />
-      </div>
+      {capsule.status === "sealed" ? (
+        <CoverArt capsuleId={capsule.id} mood={capsule.mood} size={40} />
+      ) : (
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0 bg-coral">
+          <Icon as={Sparkles} size="sm" />
+        </div>
+      )}
       <div className="flex-1 min-w-0">
         <p className="font-bold text-body text-ink truncate">{capsule.title}</p>
         <p className="text-caption text-ink-soft mt-1">{subtitle(capsule)}</p>
       </div>
-      {capsule.status === "unlocked" && (
+      {capsule.status === "unlocked" && !capsule.openedAt && (
         <span className="text-micro font-bold text-accent bg-tint px-2 py-1 rounded-full">
-          Open
+          New
         </span>
       )}
     </MotionLink>

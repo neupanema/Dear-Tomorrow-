@@ -178,3 +178,143 @@ drop policy if exists "Users can delete their own avatar" on storage.objects;
 create policy "Users can delete their own avatar"
   on storage.objects for delete to authenticated
   using (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- ---------------------------------------------------------------------------
+-- Archive (reversible, independent of unlock status) and true opened/viewed
+-- state (distinct from `status`, which only reflects the unlock condition).
+-- Delete needs no new column — it reuses the "Users can delete their own
+-- capsules" policy above, which existed but had no caller until now.
+-- ---------------------------------------------------------------------------
+alter table public.capsules add column if not exists archived_at timestamptz;
+alter table public.capsules add column if not exists opened_at timestamptz;
+notify pgrst, 'reload schema';
+
+-- One row per reveal, so a shared capsule can later show who opened it and
+-- when. Append-only: nothing ever updates or deletes a row here.
+create table if not exists public.capsule_opens (
+  id uuid primary key default gen_random_uuid(),
+  capsule_id uuid not null references public.capsules (id) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  -- Denormalized so the owner can see who opened it without a privileged
+  -- lookup into auth.users from the client.
+  opened_by_email text not null,
+  opened_at timestamptz not null default now()
+);
+create index if not exists capsule_opens_capsule_id_idx on public.capsule_opens (capsule_id);
+
+alter table public.capsule_opens enable row level security;
+
+drop policy if exists "Users can log their own opens" on public.capsule_opens;
+create policy "Users can log their own opens"
+  on public.capsule_opens for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Owners and openers can view opens" on public.capsule_opens;
+create policy "Owners and openers can view opens"
+  on public.capsule_opens for select
+  using (
+    auth.uid() = user_id
+    or capsule_id in (select id from public.capsules where user_id = auth.uid())
+  );
+
+notify pgrst, 'reload schema';
+
+-- ---------------------------------------------------------------------------
+-- Freeform tags (distinct from `mood`, which only biases cover-art color) and
+-- a per-capsule unlock radius (previously a single hardcoded constant in
+-- lib/checkLocationCapsules.ts — now user-configurable per place capsule).
+-- ---------------------------------------------------------------------------
+alter table public.capsules add column if not exists tags text[] not null default '{}';
+alter table public.capsules drop constraint if exists capsules_tags_max5;
+alter table public.capsules add constraint capsules_tags_max5
+  check (array_length(tags, 1) is null or array_length(tags, 1) <= 5);
+
+alter table public.capsules add column if not exists unlock_radius_meters integer not null default 300;
+alter table public.capsules drop constraint if exists capsules_unlock_radius_range;
+alter table public.capsules add constraint capsules_unlock_radius_range
+  check (unlock_radius_meters between 50 and 5000);
+
+notify pgrst, 'reload schema';
+
+-- ---------------------------------------------------------------------------
+-- Notification preferences, read later by the reminder cron job.
+-- ---------------------------------------------------------------------------
+alter table public.profiles add column if not exists email_reminders_enabled boolean not null default true;
+alter table public.profiles add column if not exists reminder_lead_hours integer not null default 24;
+alter table public.profiles drop constraint if exists profiles_reminder_lead_hours_valid;
+alter table public.profiles add constraint profiles_reminder_lead_hours_valid
+  check (reminder_lead_hours in (1, 24, 72, 168));
+notify pgrst, 'reload schema';
+
+-- ---------------------------------------------------------------------------
+-- One-time bookkeeping for the reminder cron (app/api/cron/send-reminders) —
+-- a capsule only ever has one date-unlock event, so a nullable timestamp is
+-- enough to prevent double-sending. Server-only: never read from the client.
+-- ---------------------------------------------------------------------------
+alter table public.capsules add column if not exists reminder_sent_at timestamptz;
+notify pgrst, 'reload schema';
+
+-- ---------------------------------------------------------------------------
+-- Sharing: invite a capsule to someone by email. Read-access only (an
+-- accepted recipient can view/open, not edit/delete/archive/share) — a
+-- "family/group" capsule is just one capsule shared to several emails, not a
+-- separate concept. Matching is done entirely via the invited user's own
+-- verified JWT email (auth.jwt() ->> 'email'), so no admin/service-role
+-- lookup is needed to know whether an invited address has an account yet.
+-- ---------------------------------------------------------------------------
+create table if not exists public.capsule_shares (
+  id uuid primary key default gen_random_uuid(),
+  capsule_id uuid not null references public.capsules (id) on delete cascade,
+  owner_id uuid not null references auth.users (id) on delete cascade,
+  invited_email text not null,
+  -- Snapshot at invite time, so a pending recipient can see what they were
+  -- invited to without row access to the capsule itself (granted only once accepted).
+  capsule_title text not null,
+  invited_user_id uuid references auth.users (id) on delete cascade,
+  status text not null default 'pending' check (status in ('pending', 'accepted', 'revoked')),
+  created_at timestamptz not null default now(),
+  accepted_at timestamptz
+);
+create unique index if not exists capsule_shares_unique on public.capsule_shares (capsule_id, lower(invited_email));
+create index if not exists capsule_shares_invited_user_idx on public.capsule_shares (invited_user_id);
+
+alter table public.capsule_shares enable row level security;
+
+drop policy if exists "Owners manage their shares" on public.capsule_shares;
+create policy "Owners manage their shares"
+  on public.capsule_shares for all
+  using (owner_id = auth.uid())
+  with check (
+    owner_id = auth.uid()
+    and exists (select 1 from public.capsules c where c.id = capsule_id and c.user_id = auth.uid())
+  );
+
+drop policy if exists "Invitees can see invites addressed to them" on public.capsule_shares;
+create policy "Invitees can see invites addressed to them"
+  on public.capsule_shares for select
+  using (
+    invited_user_id = auth.uid()
+    or lower(invited_email) = lower(coalesce(auth.jwt() ->> 'email', ''))
+  );
+
+drop policy if exists "Invitees can accept their own invite" on public.capsule_shares;
+create policy "Invitees can accept their own invite"
+  on public.capsule_shares for update
+  using (lower(invited_email) = lower(coalesce(auth.jwt() ->> 'email', '')))
+  with check (invited_user_id = auth.uid() and status = 'accepted');
+
+-- Widen capsule visibility to accepted recipients. Replaces the original
+-- owner-only select policy from earlier in this file.
+drop policy if exists "Users can view their own capsules" on public.capsules;
+drop policy if exists "Users can view their own or accepted-shared capsules" on public.capsules;
+create policy "Users can view their own or accepted-shared capsules"
+  on public.capsules for select
+  using (
+    auth.uid() = user_id
+    or exists (
+      select 1 from public.capsule_shares s
+      where s.capsule_id = capsules.id and s.invited_user_id = auth.uid() and s.status = 'accepted'
+    )
+  );
+
+notify pgrst, 'reload schema';

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Bell, Camera, Loader2, Lock, LogOut, MapPin, Moon, Settings as SettingsIcon, Trash2, Video, ChevronRight } from "lucide-react";
 import TopBar from "@/components/layout/TopBar";
 import AppShell from "@/components/layout/AppShell";
@@ -16,11 +17,11 @@ import { validatePhoto } from "@/lib/photos";
 import Icon from "@/components/ui/Icon";
 
 const ITEMS = [
-  { icon: Bell, label: "Notifications" },
+  { icon: Bell, label: "Notifications", href: "/settings/notifications" },
   { icon: Lock, label: "Privacy & sealed capsules" },
   { icon: MapPin, label: "Location access" },
   { icon: Video, label: "Video messages", badge: "Soon" },
-  { icon: SettingsIcon, label: "Account" },
+  { icon: SettingsIcon, label: "Account", href: "/settings/account" },
 ];
 
 export default function SettingsPage() {
@@ -160,26 +161,39 @@ export default function SettingsPage() {
               Dark mode
               <ThemeToggle className="ml-auto" />
             </div>
-            {ITEMS.map(({ icon: Glyph, label, badge }) => (
-              <button
-                key={label}
-                type="button"
-                // TODO: each of these opens a real settings screen later
-                onClick={() => toast("This setting isn't available yet", { variant: "info" })}
-                className="w-full bg-surface border border-line rounded-xl px-3 py-3 lg:py-4 mb-2 lg:mb-0 flex items-center gap-3 text-body text-ink"
-              >
-                <span className="w-8 h-8 rounded-lg bg-tint text-accent flex items-center justify-center">
-                  <Icon as={Glyph} size="sm" />
-                </span>
-                {label}
-                {badge && (
-                  <span className="text-micro font-bold bg-sun text-on-sun px-2 py-1 rounded-full">
-                    {badge}
+            {ITEMS.map(({ icon: Glyph, label, badge, href }) => {
+              const className =
+                "w-full bg-surface border border-line rounded-xl px-3 py-3 lg:py-4 mb-2 lg:mb-0 flex items-center gap-3 text-body text-ink";
+              const content = (
+                <>
+                  <span className="w-8 h-8 rounded-lg bg-tint text-accent flex items-center justify-center">
+                    <Icon as={Glyph} size="sm" />
                   </span>
-                )}
-                <Icon as={ChevronRight} size="sm" className="ml-auto text-ink-soft" />
-              </button>
-            ))}
+                  {label}
+                  {badge && (
+                    <span className="text-micro font-bold bg-sun text-on-sun px-2 py-1 rounded-full">
+                      {badge}
+                    </span>
+                  )}
+                  <Icon as={ChevronRight} size="sm" className="ml-auto text-ink-soft" />
+                </>
+              );
+              return href ? (
+                <Link key={label} href={href} className={className}>
+                  {content}
+                </Link>
+              ) : (
+                <button
+                  key={label}
+                  type="button"
+                  // TODO: each of these opens a real settings screen later
+                  onClick={() => toast("This setting isn't available yet", { variant: "info" })}
+                  className={className}
+                >
+                  {content}
+                </button>
+              );
+            })}
             <button
               type="button"
               onClick={signOut}

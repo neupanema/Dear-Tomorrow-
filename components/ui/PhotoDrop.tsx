@@ -7,9 +7,17 @@ import Icon from "@/components/ui/Icon";
 import { useToast } from "@/components/ui/Toast";
 import { FREE_PHOTO_LIMIT, validatePhoto } from "@/lib/photos";
 
+interface ExistingPhoto {
+  path: string;
+  url: string;
+}
+
 interface PhotoDropProps {
   value: File[];
   onChange: (files: File[]) => void;
+  /** Already-uploaded photos, shown first (edit mode only — empty for a new capsule). */
+  existing?: ExistingPhoto[];
+  onRemoveExisting?: (path: string) => void;
 }
 
 /**
@@ -17,16 +25,17 @@ interface PhotoDropProps {
  * than that (either by re-tapping at the cap or selecting a batch that goes
  * over it) doesn't upload the extra ones — it explains why, once, and stops.
  */
-export default function PhotoDrop({ value, onChange }: PhotoDropProps) {
+export default function PhotoDrop({ value, onChange, existing = [], onRemoveExisting }: PhotoDropProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const atLimit = value.length >= FREE_PHOTO_LIMIT;
+  const totalCount = existing.length + value.length;
+  const atLimit = totalCount >= FREE_PHOTO_LIMIT;
 
   function addFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
 
-    const room = FREE_PHOTO_LIMIT - value.length;
+    const room = FREE_PHOTO_LIMIT - totalCount;
     const picked = Array.from(files);
     const accepted: File[] = [];
     for (const file of picked) {
@@ -54,6 +63,13 @@ export default function PhotoDrop({ value, onChange }: PhotoDropProps) {
     <div>
       <div role="list" aria-label="Photos" className="flex gap-2 flex-wrap">
         <AnimatePresence initial={false}>
+          {existing.map((photo) => (
+            <ExistingPhotoTile
+              key={photo.path}
+              url={photo.url}
+              onRemove={onRemoveExisting ? () => onRemoveExisting(photo.path) : undefined}
+            />
+          ))}
           {value.map((file, i) => (
             <PhotoTile key={`${file.name}-${file.lastModified}-${i}`} file={file} onRemove={() => removeAt(i)} />
           ))}
@@ -84,8 +100,8 @@ export default function PhotoDrop({ value, onChange }: PhotoDropProps) {
       </div>
 
       <p className="text-caption text-ink-soft mt-2">
-        {value.length}/{FREE_PHOTO_LIMIT} photos
-        {value.length >= FREE_PHOTO_LIMIT && " · upgrade for more, coming soon"}
+        {totalCount}/{FREE_PHOTO_LIMIT} photos
+        {atLimit && " · upgrade for more, coming soon"}
       </p>
 
       {/* Sibling, not a child: an <input> inside a <button> is invalid HTML. */}
@@ -103,6 +119,33 @@ export default function PhotoDrop({ value, onChange }: PhotoDropProps) {
         }}
       />
     </div>
+  );
+}
+
+function ExistingPhotoTile({ url, onRemove }: { url: string; onRemove?: () => void }) {
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.85 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.85 }}
+      transition={{ duration: 0.18 }}
+      role="listitem"
+      className="relative w-20 h-20 rounded-2xl overflow-hidden border-2 border-line bg-tint"
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={url} alt="" className="h-full w-full object-cover" />
+      {onRemove && (
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label="Remove photo"
+          className="absolute top-1 right-1 h-6 w-6 rounded-full bg-surface/90 flex items-center justify-center"
+        >
+          <Icon as={X} size="sm" className="text-ink" />
+        </button>
+      )}
+    </motion.div>
   );
 }
 

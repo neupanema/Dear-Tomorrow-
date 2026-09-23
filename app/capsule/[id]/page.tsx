@@ -2,14 +2,24 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { notFound, useParams } from "next/navigation";
+import { notFound, useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowRight, ChevronLeft, Lock } from "lucide-react";
 import UnlockOrb from "@/components/capsules/UnlockOrb";
 import CountdownRing from "@/components/capsules/CountdownRing";
 import PhotoGallery from "@/components/capsules/PhotoGallery";
+import CapsuleActionsMenu from "@/components/capsules/CapsuleActionsMenu";
+import ShareCapsuleDialog from "@/components/capsules/ShareCapsuleDialog";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { useToast } from "@/components/ui/Toast";
 import { createClient } from "@/lib/supabase/client";
-import { toCapsule, type CapsuleRow } from "@/lib/supabase/capsules";
+import {
+  archiveCapsule,
+  deleteCapsule,
+  recordCapsuleOpen,
+  toCapsule,
+  type CapsuleRow,
+} from "@/lib/supabase/capsules";
 import { Capsule } from "@/lib/types";
 import { getCapsulePhotoUrls } from "@/lib/photos";
 import { daysUntil, daysAgo, formatDate } from "@/lib/utils";
@@ -19,11 +29,18 @@ export default function CapsuleDetailPage() {
   // useParams (not the `params` prop) — in this Next version the prop is a
   // Promise, which can't be read synchronously in a client component.
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
+  const { toast } = useToast();
   // undefined = still loading, null = not found (or not this user's capsule —
   // row-level security returns no row for both).
   const [capsule, setCapsule] = useState<Capsule | null | undefined>(undefined);
+  const [currentUser, setCurrentUser] = useState<{ id: string; email: string } | null>(null);
   // idle: waiting for a tap -> opening: crack + burst -> revealed: the message
   const [phase, setPhase] = useState<"idle" | "opening" | "revealed">("idle");
+  const [archiving, setArchiving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
   // Photos are in a private bucket, so show short-lived signed links.
   // loading -> some urls (ready), or none even though photos exist (error)
   const [photos, setPhotos] = useState<{ state: "loading" | "error" | "ready"; urls: string[] }>({
@@ -31,7 +48,13 @@ export default function CapsuleDetailPage() {
     urls: [],
   });
   const handleOpen = useCallback(() => setPhase("opening"), []);
-  const handleOpened = useCallback(() => setPhase("revealed"), []);
+  const handleOpened = useCallback(() => {
+    setPhase("revealed");
+    if (capsule && currentUser) {
+      // Best effort: a failed open-history write shouldn't block seeing the message.
+      recordCapsuleOpen(createClient(), capsule.id, currentUser.id, currentUser.email).catch(() => {});
+    }
+  }, [capsule, currentUser]);
 
   useEffect(() => {
     let active = true;
@@ -49,6 +72,54 @@ export default function CapsuleDetailPage() {
       active = false;
     };
   }, [id]);
+
+  useEffect(() => {
+    let active = true;
+    createClient()
+      .auth.getUser()
+      .then(({ data }) => {
+        if (active && data.user) setCurrentUser({ id: data.user.id, email: data.user.email ?? "" });
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Re-visiting an already-revealed capsule should show the message straight
+  // away, not replay the tap-to-open interstitial.
+  useEffect(() => {
+    if (capsule?.status === "unlocked" && capsule.openedAt) setPhase("revealed");
+  }, [capsule]);
+
+  const isOwner = !!capsule && !!currentUser && capsule.userId === currentUser.id;
+
+  async function handleArchiveToggle() {
+    if (!capsule || archiving) return;
+    setArchiving(true);
+    const wasArchived = !!capsule.archivedAt;
+    try {
+      await archiveCapsule(createClient(), capsule.id, !wasArchived);
+      setCapsule({ ...capsule, archivedAt: wasArchived ? undefined : new Date().toISOString() });
+      toast(wasArchived ? "Capsule restored" : "Capsule archived", { variant: "info" });
+    } catch (err) {
+      toast((err as Error).message, { variant: "error" });
+    } finally {
+      setArchiving(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!capsule || deleting) return;
+    setDeleting(true);
+    try {
+      await deleteCapsule(createClient(), capsule);
+      toast("Capsule deleted");
+      router.push("/dashboard");
+    } catch (err) {
+      toast((err as Error).message, { variant: "error" });
+      setDeleting(false);
+    }
+  }
 
   const photoPaths = capsule?.status === "unlocked" ? capsule.photoPaths : [];
   useEffect(() => {
@@ -100,6 +171,19 @@ export default function CapsuleDetailPage() {
         >
           <Icon as={ChevronLeft} size="md" />
         </Link>
+        {isOwner && (
+          <div className="absolute right-2 top-2 lg:right-6 lg:top-6">
+            <CapsuleActionsMenu
+              editHref={`/capsule/${capsule.id}/edit`}
+              archived={!!capsule.archivedAt}
+              archiving={archiving}
+              onArchiveToggle={handleArchiveToggle}
+              onDelete={() => setShowDeleteDialog(true)}
+              onShare={() => setShowShareDialog(true)}
+              triggerClassName="text-white"
+            />
+          </div>
+        )}
         {hasCountdown ? (
           <motion.div
             animate={{ y: [0, -6, 0] }}
@@ -126,6 +210,17 @@ export default function CapsuleDetailPage() {
         <div className="bg-black/20 px-4 py-2 rounded-full text-caption lg:text-body font-bold">
           {footer}
         </div>
+        <ConfirmDialog
+          open={showDeleteDialog}
+          title="Delete this capsule?"
+          body="This permanently deletes the capsule and any photos attached to it. There's no undoing this."
+          confirmLabel="Delete capsule"
+          confirmWord="DELETE"
+          loading={deleting}
+          onConfirm={handleDelete}
+          onClose={() => !deleting && setShowDeleteDialog(false)}
+        />
+        <ShareCapsuleDialog open={showShareDialog} capsule={capsule} onClose={() => setShowShareDialog(false)} />
       </main>
     );
   }
@@ -142,6 +237,17 @@ export default function CapsuleDetailPage() {
         >
           <Icon as={ChevronLeft} size="md" />
         </Link>
+        {isOwner && (
+          <div className="absolute right-2 top-2 lg:right-6 lg:top-6">
+            <CapsuleActionsMenu
+              archived={!!capsule.archivedAt}
+              archiving={archiving}
+              onArchiveToggle={handleArchiveToggle}
+              onDelete={() => setShowDeleteDialog(true)}
+              onShare={() => setShowShareDialog(true)}
+            />
+          </div>
+        )}
         <p role="status" className="sr-only">
           {opening ? "Opening your capsule..." : ""}
         </p>
@@ -163,6 +269,17 @@ export default function CapsuleDetailPage() {
             <Icon as={ArrowRight} size="sm" />
           </p>
         </motion.div>
+        <ConfirmDialog
+          open={showDeleteDialog}
+          title="Delete this capsule?"
+          body="This permanently deletes the capsule and any photos attached to it. There's no undoing this."
+          confirmLabel="Delete capsule"
+          confirmWord="DELETE"
+          loading={deleting}
+          onConfirm={handleDelete}
+          onClose={() => !deleting && setShowDeleteDialog(false)}
+        />
+        <ShareCapsuleDialog open={showShareDialog} capsule={capsule} onClose={() => setShowShareDialog(false)} />
       </main>
     );
   }
@@ -184,6 +301,17 @@ export default function CapsuleDetailPage() {
           >
             <Icon as={ChevronLeft} size="md" />
           </Link>
+          {isOwner && (
+            <div className="absolute right-2 top-2 lg:right-6 lg:top-6">
+              <CapsuleActionsMenu
+                archived={!!capsule.archivedAt}
+                archiving={archiving}
+                onArchiveToggle={handleArchiveToggle}
+                onDelete={() => setShowDeleteDialog(true)}
+                onShare={() => setShowShareDialog(true)}
+              />
+            </div>
+          )}
           <motion.h1
             ref={revealedHeading}
             tabIndex={-1}
@@ -235,9 +363,21 @@ export default function CapsuleDetailPage() {
             className="text-caption text-ink-soft text-center mt-2 lg:mt-3"
           >
             Written {daysAgo(capsule.createdAt)} days ago
+            {capsule.openedAt && ` · Opened ${formatDate(capsule.openedAt)}`}
           </motion.p>
         </div>
       </div>
+      <ConfirmDialog
+        open={showDeleteDialog}
+        title="Delete this capsule?"
+        body="This permanently deletes the capsule and any photos attached to it. There's no undoing this."
+        confirmLabel="Delete capsule"
+        confirmWord="DELETE"
+        loading={deleting}
+        onConfirm={handleDelete}
+        onClose={() => !deleting && setShowDeleteDialog(false)}
+      />
+      <ShareCapsuleDialog open={showShareDialog} capsule={capsule} onClose={() => setShowShareDialog(false)} />
     </motion.main>
   );
 }

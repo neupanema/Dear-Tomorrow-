@@ -5,6 +5,7 @@ import { AnimatePresence } from "framer-motion";
 import TopBar from "@/components/layout/TopBar";
 import AppShell from "@/components/layout/AppShell";
 import CapsuleCard from "@/components/capsules/CapsuleCard";
+import CapsuleTimeline from "@/components/capsules/CapsuleTimeline";
 import FabButton from "@/components/capsules/FabButton";
 import Button from "@/components/ui/Button";
 import Chip from "@/components/ui/Chip";
@@ -17,23 +18,37 @@ import { toCapsule, type CapsuleRow } from "@/lib/supabase/capsules";
 import { checkLocationCapsules } from "@/lib/checkLocationCapsules";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { Capsule } from "@/lib/types";
-import { Lock, Plus, Sparkles } from "lucide-react";
+import { Clock, LayoutGrid, Lock, Plus, Search, Sparkles, X } from "lucide-react";
 
 type Filter = "all" | "sealed" | "unlocked";
+type Sort = "newest" | "oldest" | "unlock-soonest";
+type View = "grid" | "timeline";
 
 export default function DashboardPage() {
   const { toast } = useToast();
   const [filter, setFilter] = useState<Filter>("all");
+  const [showArchived, setShowArchived] = useState(false);
   const [capsules, setCapsules] = useState<Capsule[] | null>(null);
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState<Sort>("newest");
+  const [activeTags, setActiveTags] = useState<string[]>([]);
+  const [view, setView] = useState<View>("grid");
 
   const { coords } = useGeolocation();
   const locationChecked = useRef(false);
 
-  const loadCapsules = useCallback(async () => {
-    const { data, error } = await createClient()
-      .from("capsules")
-      .select("*")
-      .order("created_at", { ascending: false });
+  const loadCapsules = useCallback(async (archived: boolean) => {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // Capsules shared with this user (via an accepted invite) are visible to
+    // RLS too, but they belong on /shared, not mixed into the owner's own list.
+    let query = supabase.from("capsules").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
+    query = archived ? query.not("archived_at", "is", null) : query.is("archived_at", null);
+    const { data, error } = await query;
     if (error) {
       toast(error.message, { variant: "error" });
       setCapsules((prev) => prev ?? []);
@@ -43,8 +58,9 @@ export default function DashboardPage() {
   }, [toast]);
 
   useEffect(() => {
-    void loadCapsules();
-  }, [loadCapsules]);
+    setCapsules(null);
+    void loadCapsules(showArchived);
+  }, [loadCapsules, showArchived]);
 
   // Once the browser hands over a position, see whether we're standing at any
   // sealed place capsule. If location is denied or unsupported, `coords` just
@@ -65,13 +81,13 @@ export default function DashboardPage() {
         } else {
           toast(`🎉 ${unlocked.length} capsules just unlocked!`, { duration: 6000 });
         }
-        return loadCapsules();
+        return loadCapsules(showArchived);
       })
       .catch(() => {
         // A failed background check shouldn't interrupt the dashboard; it
         // will simply run again on the next visit.
       });
-  }, [coords, loadCapsules, toast]);
+  }, [coords, loadCapsules, showArchived, toast]);
 
   const loading = capsules === null;
   const allCapsules = capsules ?? [];
@@ -83,18 +99,59 @@ export default function DashboardPage() {
 
   const hasCapsules = allCapsules.length > 0;
 
+  const allTags = useMemo(() => {
+    const set = new Set<string>();
+    for (const c of allCapsules) for (const t of c.tags) set.add(t);
+    return [...set].sort();
+  }, [allCapsules]);
+
+  const hasActiveSearchOrTags = search.trim().length > 0 || activeTags.length > 0;
+
   const visibleCapsules = useMemo(() => {
-    if (filter === "all") return allCapsules;
-    return allCapsules.filter((c) => c.status === filter);
-  }, [filter, allCapsules]);
+    // The status filter chips are hidden while viewing archived capsules —
+    // every archived capsule is a candidate regardless of sealed/unlocked status.
+    let list = showArchived || filter === "all" ? allCapsules : allCapsules.filter((c) => c.status === filter);
+
+    if (activeTags.length > 0) {
+      list = list.filter((c) => activeTags.every((tag) => c.tags.includes(tag)));
+    }
+    const q = search.trim().toLowerCase();
+    if (q) {
+      list = list.filter(
+        (c) =>
+          c.title.toLowerCase().includes(q) ||
+          c.message.toLowerCase().includes(q) ||
+          c.tags.some((t) => t.includes(q))
+      );
+    }
+
+    const sorted = [...list];
+    if (sort === "newest") {
+      sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    } else if (sort === "oldest") {
+      sorted.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    } else {
+      // "Opens soonest" — capsules with no unlock date (place-only) sort last.
+      sorted.sort((a, b) => {
+        const aTime = a.unlockDate ? new Date(a.unlockDate).getTime() : Infinity;
+        const bTime = b.unlockDate ? new Date(b.unlockDate).getTime() : Infinity;
+        return aTime - bTime;
+      });
+    }
+    return sorted;
+  }, [filter, allCapsules, showArchived, activeTags, search, sort]);
 
   return (
     <AppShell>
       <TopBar
-        title="Your capsules"
+        title={showArchived ? "Archived capsules" : "Your capsules"}
         subtitle={
           loading
-            ? "Loading your capsules..."
+            ? "Loading..."
+            : showArchived
+            ? hasCapsules
+              ? `${allCapsules.length} archived`
+              : "No archived capsules"
             : hasCapsules
             ? `${sealedCount} sealed, ${unlockedCount} ready to open`
             : "Nothing sealed yet"
@@ -102,7 +159,17 @@ export default function DashboardPage() {
       />
 
       <div className="flex-1 p-4 pb-24 lg:px-10 lg:py-8 lg:pb-16">
-        {hasCapsules && (
+        <div className="flex justify-end mb-2 lg:mb-4">
+          <button
+            type="button"
+            onClick={() => setShowArchived((v) => !v)}
+            className="text-caption font-bold text-ink-soft underline"
+          >
+            {showArchived ? "Back to capsules" : "View archived"}
+          </button>
+        </div>
+
+        {hasCapsules && !showArchived && (
           <div className="flex items-center justify-between mb-3 lg:mb-6">
             <div role="group" aria-label="Filter capsules" className="flex gap-2">
               <Chip label="All" active={filter === "all"} onClick={() => setFilter("all")} />
@@ -129,15 +196,92 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <div className="lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-4">
-          <AnimatePresence mode="popLayout" initial>
-            {visibleCapsules.map((capsule, i) => (
-              <CapsuleCard key={capsule.id} capsule={capsule} index={i} />
-            ))}
-          </AnimatePresence>
-        </div>
+        {hasCapsules && (
+          <div className="mb-3 lg:mb-6">
+            <div className="flex items-center gap-2 bg-surface border border-line rounded-xl px-3 mb-3 text-ink-soft">
+              <Icon as={Search} size="sm" />
+              <label htmlFor="capsule-search" className="sr-only">
+                Search your capsules
+              </label>
+              <input
+                id="capsule-search"
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search by message, title, or tag"
+                className="flex-1 min-w-0 bg-transparent py-2.5 text-body text-ink placeholder:text-ink-soft"
+              />
+              {search && (
+                <button type="button" onClick={() => setSearch("")} aria-label="Clear search">
+                  <Icon as={X} size="sm" />
+                </button>
+              )}
+            </div>
 
-        {!loading && !hasCapsules && (
+            <div className="flex items-center justify-between gap-2 flex-wrap mb-3">
+              <div role="group" aria-label="Sort capsules" className="flex gap-2 flex-wrap">
+                <Chip label="Newest" active={sort === "newest"} onClick={() => setSort("newest")} />
+                <Chip label="Oldest" active={sort === "oldest"} onClick={() => setSort("oldest")} />
+                <Chip
+                  label="Opens soonest"
+                  active={sort === "unlock-soonest"}
+                  onClick={() => setSort("unlock-soonest")}
+                />
+              </div>
+              <div role="group" aria-label="View" className="flex gap-1 bg-tint rounded-full p-1">
+                <button
+                  type="button"
+                  aria-pressed={view === "grid"}
+                  aria-label="Grid view"
+                  onClick={() => setView("grid")}
+                  className={`p-2 rounded-full ${view === "grid" ? "bg-surface text-accent" : "text-ink-soft"}`}
+                >
+                  <Icon as={LayoutGrid} size="sm" />
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={view === "timeline"}
+                  aria-label="Timeline view"
+                  onClick={() => setView("timeline")}
+                  className={`p-2 rounded-full ${view === "timeline" ? "bg-surface text-accent" : "text-ink-soft"}`}
+                >
+                  <Icon as={Clock} size="sm" />
+                </button>
+              </div>
+            </div>
+
+            {allTags.length > 0 && (
+              <div role="group" aria-label="Filter by tag" className="flex gap-2 flex-wrap">
+                {allTags.map((tag) => (
+                  <Chip
+                    key={tag}
+                    label={tag}
+                    active={activeTags.includes(tag)}
+                    onClick={() =>
+                      setActiveTags((prev) =>
+                        prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+                      )
+                    }
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {view === "timeline" ? (
+          visibleCapsules.length > 0 && <CapsuleTimeline capsules={visibleCapsules} />
+        ) : (
+          <div className="lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-4">
+            <AnimatePresence mode="popLayout" initial>
+              {visibleCapsules.map((capsule, i) => (
+                <CapsuleCard key={capsule.id} capsule={capsule} index={i} />
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+
+        {!loading && !hasCapsules && !showArchived && (
           <EmptyState
             className="mt-10 lg:mt-24"
             illustration={<EmptyCapsulesIllustration className="w-48 h-auto lg:w-56" />}
@@ -147,7 +291,42 @@ export default function DashboardPage() {
           />
         )}
 
-        {hasCapsules && visibleCapsules.length === 0 && (
+        {!loading && !hasCapsules && showArchived && (
+          <EmptyState
+            className="mt-10 lg:mt-24"
+            illustration={
+              <span className="w-14 h-14 rounded-2xl bg-tint text-accent flex items-center justify-center">
+                <Icon as={Sparkles} size="lg" />
+              </span>
+            }
+            title="Nothing archived"
+            body="Capsules you archive show up here."
+            action={{ label: "Back to capsules", variant: "secondary", onClick: () => setShowArchived(false) }}
+          />
+        )}
+
+        {hasCapsules && visibleCapsules.length === 0 && hasActiveSearchOrTags && (
+          <EmptyState
+            className="mt-10"
+            illustration={
+              <span className="w-14 h-14 rounded-2xl bg-tint text-accent flex items-center justify-center">
+                <Icon as={Search} size="lg" />
+              </span>
+            }
+            title="No matches"
+            body="Nothing matches your search and tag filters."
+            action={{
+              label: "Clear filters",
+              variant: "secondary",
+              onClick: () => {
+                setSearch("");
+                setActiveTags([]);
+              },
+            }}
+          />
+        )}
+
+        {hasCapsules && visibleCapsules.length === 0 && !hasActiveSearchOrTags && (
           <EmptyState
             className="mt-10"
             illustration={

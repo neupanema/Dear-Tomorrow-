@@ -13,6 +13,7 @@ import type { MapPin } from "@/components/map/MemoryMap";
 import { createClient } from "@/lib/supabase/client";
 import { toCapsule, type CapsuleRow } from "@/lib/supabase/capsules";
 import { useGeolocation } from "@/lib/useGeolocation";
+import { UNLOCK_RADIUS_METERS } from "@/lib/checkLocationCapsules";
 import { distanceKm, formatDistance, daysUntil, formatCountdown } from "@/lib/utils";
 import { MapPin as MapPinIcon, Plus } from "lucide-react";
 
@@ -61,6 +62,7 @@ export default function MapPage() {
             lat: c.unlockLocation.lat,
             lng: c.unlockLocation.lng,
             unlockDate: c.unlockMethod === "date-and-place" ? c.unlockDate : undefined,
+            unlockRadiusMeters: c.unlockRadiusMeters ?? UNLOCK_RADIUS_METERS,
           });
         }
         setPins(next);
@@ -213,6 +215,8 @@ export default function MapPage() {
                           <p className="text-caption text-ink-soft">
                             {pin.status === "unlocked" ? "Ready to open" : countdown ?? "Sealed"}
                             {away && ` · ${away} away`}
+                            {pin.status === "sealed" &&
+                              ` · ${formatDistance(pin.unlockRadiusMeters / 1000)} radius`}
                           </p>
                         </div>
                       </button>

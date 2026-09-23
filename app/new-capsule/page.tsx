@@ -1,16 +1,13 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
-import { Calendar, MapPin, Sparkles, Video, Check, Lock } from "lucide-react";
+import { Check, Lock } from "lucide-react";
 import TopBar from "@/components/layout/TopBar";
 import Button from "@/components/ui/Button";
-import PhotoDrop from "@/components/ui/PhotoDrop";
 import StepIndicator from "@/components/new-capsule/StepIndicator";
-import MethodCard from "@/components/new-capsule/MethodCard";
-import CapsuleCalendar from "@/components/new-capsule/CapsuleCalendar";
+import CapsuleFormFields from "@/components/new-capsule/CapsuleFormFields";
 import ReviewSummary from "@/components/new-capsule/ReviewSummary";
 import SealAnimation from "@/components/new-capsule/SealAnimation";
 import { LocationPoint, UnlockMethod } from "@/lib/types";
@@ -18,15 +15,11 @@ import { useToast } from "@/components/ui/Toast";
 import { formatDate } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { removeCapsulePhotos, uploadCapsulePhotos } from "@/lib/photos";
+import { listAllTags } from "@/lib/supabase/capsules";
+import { UNLOCK_RADIUS_METERS } from "@/lib/checkLocationCapsules";
 import Icon from "@/components/ui/Icon";
 
 const TOTAL_STEPS = 4;
-
-// Leaflet touches `window` on import, so the picker can only load in the browser.
-const LocationPicker = dynamic(() => import("@/components/new-capsule/LocationPicker"), {
-  ssr: false,
-  loading: () => <div aria-hidden="true" className="h-64 lg:h-80 rounded-2xl bg-map-land animate-pulse" />,
-});
 
 export default function NewCapsulePage() {
   const router = useRouter();
@@ -40,9 +33,19 @@ export default function NewCapsulePage() {
   // form state — all of this is what you'll POST to the backend once it exists
   const [message, setMessage] = useState("");
   const [photos, setPhotos] = useState<File[]>([]);
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
   const [method, setMethod] = useState<UnlockMethod>("date");
   const [date, setDate] = useState<Date | null>(null);
   const [locationPoint, setLocationPoint] = useState<LocationPoint | null>(null);
+  const [radiusMeters, setRadiusMeters] = useState(UNLOCK_RADIUS_METERS);
+
+  useEffect(() => {
+    // Best effort — an empty suggestion list just means nothing to suggest yet.
+    listAllTags(createClient())
+      .then(setTagSuggestions)
+      .catch(() => {});
+  }, []);
 
   const dateLabel = date ? formatDate(date.toISOString()) : "No date selected";
   const placeLabel = locationPoint
@@ -118,6 +121,7 @@ export default function NewCapsulePage() {
       title,
       photo_paths: photoPaths,
       message,
+      tags,
       unlock_method: method,
       status: "sealed",
       ...(usesDate && date ? { unlock_date: date.toISOString() } : {}),
@@ -126,6 +130,7 @@ export default function NewCapsulePage() {
             unlock_lat: locationPoint.lat,
             unlock_lng: locationPoint.lng,
             unlock_location_label: locationPoint.label ?? null,
+            unlock_radius_meters: radiusMeters,
           }
         : {}),
     });
@@ -243,64 +248,25 @@ export default function NewCapsulePage() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
             >
-              {step === 1 && (
-                <div>
-                  <label className="field-label" htmlFor="message">
-                    Message
-                  </label>
-                  <textarea
-                    id="message"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Dear future me, I hope you didn't give up on..."
-                    rows={4}
-                    className="w-full bg-surface border-2 border-dashed border-line-strong rounded-2xl p-3 text-lead text-ink resize-none focus:border-accent"
-                  />
-                  <p className="field-label">Photos</p>
-                  <PhotoDrop value={photos} onChange={setPhotos} />
-                </div>
-              )}
-
-              {step === 2 && (
-                <div role="group" aria-label="How should it unlock?">
-                  <MethodCard
-                    icon={Calendar}
-                    title="On a date"
-                    subtitle="Choose a day in the future to open it"
-                    active={method === "date"}
-                    onClick={() => setMethod("date")}
-                  />
-                  <MethodCard
-                    icon={MapPin}
-                    title="At a place"
-                    subtitle="Unlocks when you return somewhere"
-                    active={method === "place"}
-                    onClick={() => setMethod("place")}
-                  />
-                  <MethodCard
-                    icon={Sparkles}
-                    title="Date + place"
-                    subtitle="Needs both to open, for a bigger moment"
-                    active={method === "date-and-place"}
-                    onClick={() => setMethod("date-and-place")}
-                  />
-                  <MethodCard
-                    icon={Video}
-                    title="Video message"
-                    subtitle="Coming soon"
-                    badge="Soon"
-                    disabled
-                  />
-                </div>
-              )}
-
-              {step === 3 && method !== "place" && (
-                <CapsuleCalendar value={date} onChange={setDate} />
-              )}
-              {step === 3 && method !== "date" && (
-                <div className={method === "date-and-place" ? "mt-6" : undefined}>
-                  <LocationPicker value={locationPoint} onChange={setLocationPoint} />
-                </div>
+              {step < 4 && (
+                <CapsuleFormFields
+                  step={step}
+                  message={message}
+                  onMessageChange={setMessage}
+                  photos={photos}
+                  onPhotosChange={setPhotos}
+                  tags={tags}
+                  onTagsChange={setTags}
+                  tagSuggestions={tagSuggestions}
+                  method={method}
+                  onMethodChange={setMethod}
+                  date={date}
+                  onDateChange={setDate}
+                  locationPoint={locationPoint}
+                  onLocationChange={setLocationPoint}
+                  radiusMeters={radiusMeters}
+                  onRadiusChange={setRadiusMeters}
+                />
               )}
 
               {step === 4 && (
